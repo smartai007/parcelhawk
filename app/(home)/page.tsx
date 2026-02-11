@@ -1,7 +1,15 @@
+import { MainHeader } from "@/components/main-header";
+import HeroSection from "./components/hero-section";
+import ExploreLandTypes from "@/components/explore-land-types";
+import WhyParcel from "./components/why-parcel";
+
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <h1 className="text-4xl font-bold">Welcome Home</h1>
-    </div>
-  );
+    <>
+      <MainHeader />
+      <HeroSection />
+      <ExploreLandTypes />
+      <WhyParcel />
+    </>
+  )
 }

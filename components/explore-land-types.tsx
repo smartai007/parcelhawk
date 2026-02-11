@@ -1,0 +1,76 @@
+import Image from "next/image"
+
+const landTypes = [
+  {
+    name: "Acreage",
+    listings: "2,400+",
+    image: "/images/acreage.jpg",
+  },
+  {
+    name: "Farms",
+    listings: "850+",
+    image: "/images/farms.jpg",
+  },
+  {
+    name: "Ranches",
+    listings: "1,200+",
+    image: "/images/ranches.jpg",
+  },
+  {
+    name: "Investment",
+    listings: "600+",
+    image: "/images/investment.jpg",
+  },
+  {
+    name: "Off-Grid",
+    listings: "450+",
+    image: "/images/off-grid.jpg",
+  },
+]
+
+export default function ExploreLandTypes() {
+  return (
+    <section className="bg-background py-16 px-6 md:py-24">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold uppercase tracking-wider text-foreground md:text-4xl lg:text-5xl text-balance">
+            Explore By Land Type
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+            From Sprawling Ranches To Secluded Off-Grid Parcels, Find The
+            Perfect Property For Your Vision.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+          {landTypes.map((type) => (
+            <a
+              key={type.name}
+              href="#"
+              className="group relative overflow-hidden rounded-2xl"
+            >
+              <div className="aspect-3/4 w-full">
+                <Image
+                  src={type.image || "/placeholder.svg"}
+                  alt={`${type.name} land listings`}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                />
+              </div>
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-4">
+                <h3 className="text-lg font-semibold text-white">
+                  {type.name}
+                </h3>
+                <p className="text-sm text-neutral-300">
+                  {type.listings} Listings
+                </p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
