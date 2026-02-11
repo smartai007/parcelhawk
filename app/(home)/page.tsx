@@ -6,7 +6,6 @@ import WhyParcel from "./components/why-parcel";
 export default function HomePage() {
   return (
     <>
-      <MainHeader />
       <HeroSection />
       <ExploreLandTypes />
       <WhyParcel />
