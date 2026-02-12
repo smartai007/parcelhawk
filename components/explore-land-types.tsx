@@ -4,39 +4,39 @@ const landTypes = [
   {
     name: "Acreage",
     listings: "2,400+",
-    image: "/images/acreage.jpg",
+    image: "/images/acreage.png",
   },
   {
     name: "Farms",
     listings: "850+",
-    image: "/images/farms.jpg",
+    image: "/images/farms.png",
   },
   {
     name: "Ranches",
     listings: "1,200+",
-    image: "/images/ranches.jpg",
+    image: "/images/ranches.png",
   },
   {
     name: "Investment",
     listings: "600+",
-    image: "/images/investment.jpg",
+    image: "/images/investment.png",
   },
   {
     name: "Off-Grid",
     listings: "450+",
-    image: "/images/off-grid.jpg",
+    image: "/images/off-grid.png",
   },
 ]
 
 export default function ExploreLandTypes() {
   return (
     <section className="bg-background py-16 px-6 md:py-24">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl font-ibm-plex-sans">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold uppercase tracking-wider text-foreground md:text-4xl lg:text-5xl text-balance">
+          <h2 className="text-3xl font-medium font-phudu uppercase tracking-wider text-foreground md:text-4xl lg:text-5xl text-balance">
             Explore By Land Type
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-3xl text-muted-foreground">
             From Sprawling Ranches To Secluded Off-Grid Parcels, Find The
             Perfect Property For Your Vision.
           </p>

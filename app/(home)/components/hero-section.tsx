@@ -7,59 +7,44 @@ import HeroBg from "@/public/images/hero-bg.png"
 const MIN_ACRES_OPTIONS = ["No Min", "1", "5", "10", "20", "50", "100", "200", "500"]
 const MAX_ACRES_OPTIONS = ["No Max", "5", "10", "20", "50", "100", "200", "500", "1000+"]
 
-function AcresDropdown({
-  label,
-  options,
-  value,
-  onChange,
-  className,
-}: {
+type AcresDropdownProps = {
   label: string
   options: string[]
   value: string
   onChange: (val: string) => void
   className?: string
-}) {
+}
+
+function AcresDropdown({ label, options, value, onChange, className }: AcresDropdownProps) {
   const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", close)
+    return () => document.removeEventListener("mousedown", close)
   }, [open])
 
+  const triggerClass =
+    "flex w-full min-w-0 items-center justify-between gap-2 rounded-md bg-white/10 px-4 py-3 text-sm text-neutral-200 backdrop-blur-md transition-colors hover:bg-white/15 focus:outline-none"
+  const listClass =
+    "absolute left-0 top-full z-50 mt-1 min-w-28 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 bg-white/10 py-1 shadow-lg backdrop-blur-md"
+  const itemClass = "w-full px-4 py-2 text-left text-sm text-neutral-200 transition-colors hover:bg-white/15"
+
   return (
-    <div ref={containerRef} className={["relative w-32 shrink-0", className].filter(Boolean).join(" ")}>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          setOpen((prev) => !prev)
-        }}
-        className="flex justify-between w-full min-w-0 items-center gap-2 rounded-md bg-white/10 px-4 py-3 text-sm text-neutral-200 backdrop-blur-md transition-colors hover:bg-white/15 focus:outline-none"
-      >
+    <div ref={ref} className={`relative w-32 shrink-0 ${className ?? ""}`.trim()}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={triggerClass}>
         <span className="min-w-0 truncate">{value || label}</span>
-        <ChevronDown className="h-4 w-4 shrink-0 text-neutral-400" />
+        <ChevronDown className="h-4 w-4 shrink-0 text-[#FFFFFF]" />
       </button>
       {open && (
-        <ul className="absolute left-0 top-full z-50 mt-1 min-w-28 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 bg-white/10 py-1 shadow-lg backdrop-blur-md">
+        <ul className={listClass}>
           {options.map((opt) => (
             <li key={opt}>
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(opt)
-                  setOpen(false)
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-neutral-200 transition-colors hover:bg-white/15"
-              >
+              <button type="button" onClick={() => { onChange(opt); setOpen(false) }} className={itemClass}>
                 {opt}
               </button>
             </li>
@@ -76,7 +61,7 @@ export default function HeroSection() {
   const [searchQuery, setSearchQuery] = useState("")
 
   return (
-    <section className="relative flex min-h-[calc(100vh-73px)] flex-col items-center justify-center bg-neutral-900 px-4 bg-cover bg-center" style={{ backgroundImage: `url(${HeroBg.src})` }}>
+    <section className="relative flex min-h-[calc(100vh)] -mt-[80px] flex-col items-center justify-center bg-neutral-900 px-4 bg-cover bg-center" style={{ backgroundImage: `url(${HeroBg.src})` }}>
       {/* Subtle radial overlay for depth */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.03)_0%,transparent_70%)]" />
 
@@ -122,7 +107,7 @@ export default function HeroSection() {
         </div>
 
         {/* Trust badge */}
-        <p className="mt-2 text-xs uppercase tracking-widest text-neutral-400">
+        <p className="mt-2 font-ibm-plex-sans text-sm uppercase tracking-widest text-neutral-100">
           Trusted by over 10,000 landowners
         </p>
       </div>

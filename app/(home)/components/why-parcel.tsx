@@ -1,6 +1,7 @@
 "use client"
 
 import { ShieldCheck, Globe, CircleCheck, Sparkles } from "lucide-react"
+import whyParcel from "@/public/images/why-precel.png"
 
 const features = [
   {
@@ -32,13 +33,14 @@ const features = [
 export default function WhyParcel() {
   return (
     <section className="bg-neutral-950 px-6 py-20 md:px-12 lg:px-20">
-      <div className="mx-auto flex max-w-7xl flex-col items-start gap-12 lg:flex-row lg:items-center lg:gap-20">
+      <div
+        className="mx-auto flex font-ibm-plex-sans max-w-7xl flex-col items-start gap-12 lg:flex-row lg:items-center lg:gap-20">
         {/* Left column */}
         <div className="flex-1">
-          <h2 className="font-sans text-3xl font-bold uppercase tracking-tight text-white md:text-4xl lg:text-5xl text-balance">
+          <div className="text-3xl font-medium font-phudu uppercase tracking-tight text-white md:text-4xl lg:text-5xl text-balance">
             The Modern Way To Discover And Match Land.
-          </h2>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-neutral-400">
+          </div>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#FFFFFF]">
             {"We've Reimagined The Land Buying Experience To Be Transparent, Efficient, And Inspiring. Whether You're Looking For A Weekend Getaway Or A Legacy Investment, We Help You Find Your Ground."}
           </p>
         </div>
@@ -48,15 +50,15 @@ export default function WhyParcel() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="flex flex-col items-center rounded-2xl border border-neutral-800 bg-neutral-900 px-6 py-8 text-center"
+              className="flex flex-col items-center rounded-2xl bg-[#101010] px-6 py-8 text-center"
             >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-neutral-700 bg-neutral-800">
-                <feature.icon className="h-5 w-5 text-neutral-300" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg border-neutral-700 bg-[#0C0C0C]">
+                <feature.icon className="h-5 w-5 text-[#FFFFFF]" />
               </div>
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-[19px] font-medium text-white">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-400">
+              <p className="mt-2 text-base leading-relaxed text-[#D9DADF]">
                 {feature.description}
               </p>
             </div>

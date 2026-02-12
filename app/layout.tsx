@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, IBM_Plex_Sans, Phudu } from "next/font/google";
 import { MainHeader } from "@/components/main-header";
+import Footer from "@/components/footer";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
         <Providers>
           <MainHeader />
           <div className="pt-[73px]">{children}</div>
+          <Footer />
         </Providers>
       </body>
     </html>
