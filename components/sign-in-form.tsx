@@ -1,9 +1,13 @@
 "use client"
 
+import { signIn } from "next-auth/react"
 import { useState } from "react"
 import { Eye, EyeOff, X } from "lucide-react"
 import BuyerIcon from "@/components/icons/buyer"
 import InvestorIcon from "@/components/icons/investor"
+import GoogleIcon from "@/components/icons/google-icon"
+import { toast } from "sonner"
+
 type Role = "buyer" | "investor"
 
 type SignInFormProps = {
@@ -15,6 +19,40 @@ export default function SignInForm({ onClose }: SignInFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+
+  const handleSignIn = async () => {
+    try {
+      const result = await signIn("credentials", {
+        email: email.trim(),
+        password,
+        redirect: false,
+      })
+
+      if (result?.ok) {
+        toast.success("Signed in successfully", {
+          description: "You can continue to the app.",
+        })
+        onClose?.()
+        return
+      }
+
+      if (result?.error === "CredentialsSignin" || result?.status === 401) {
+        toast.error("Invalid email or password", {
+          description: "Please check your credentials and try again.",
+        })
+        return
+      }
+
+      toast.error("Something went wrong", {
+        description: result?.error ?? "Please try again later.",
+      })
+    } catch (error) {
+      console.error(error)
+      toast.error("Connection failed", {
+        description: "Check your network and try again.",
+      })
+    }
+  }
 
   const card = (
     <div className="relative w-full max-w-2xl rounded-2xl bg-card p-10 shadow-lg font-ibm-plex-sans">
@@ -48,7 +86,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
               className={`flex items-center justify-center gap-2 rounded-lg border px-16 py-3 text-base font-medium transition-colors ${
                 selectedRole === "buyer"
                   ? "border-[#04C0AF]! bg-[#E4FFFD] text-[#096D64]"
-                  : "border-neutral-50 bg-card text-muted-foreground hover:border-neutral-100"
+                  : "border-border bg-card text-muted-foreground hover:border-border"
               }`}
             >
               <BuyerIcon active={selectedRole === "buyer"} />
@@ -60,7 +98,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
               className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-base font-medium transition-colors ${
                 selectedRole === "investor"
                   ? "border-[#04C0AF]! bg-[#E4FFFD] text-[#096D64]"
-                  : "border-neutral bg-card text-muted-foreground hover:border-neutral-100"
+                  : "border-border bg-card text-muted-foreground hover:border-border"
               }`}
             >
               <InvestorIcon active={selectedRole === "investor"} />
@@ -130,7 +168,8 @@ export default function SignInForm({ onClose }: SignInFormProps) {
         {/* Continue Button */}
         <button
           type="button"
-          className="mt-4 w-full rounded-xl bg-[#04C0AF] py-3.5 text-lg text-white shadow-md transition-colors hover:bg-[#3dbdb5] active:bg-[#35aba3]"
+          className="mt-4 w-full rounded-xl cursor-pointer bg-[#04C0AF] hover:bg-[#3dbdb5]/80 active:bg-[#35aba3] py-3.5 text-lg text-white shadow-md transition-colors"
+          onClick={handleSignIn}
         >
           Continue
         </button>
@@ -172,28 +211,5 @@ export default function SignInForm({ onClose }: SignInFormProps) {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       {card}
     </div>
-  )
-}
-
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 48 48">
-      <path
-        fill="#FFC107"
-        d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
-      />
-      <path
-        fill="#FF3D00"
-        d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
-      />
-      <path
-        fill="#4CAF50"
-        d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
-      />
-      <path
-        fill="#1976D2"
-        d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
-      />
-    </svg>
   )
 }

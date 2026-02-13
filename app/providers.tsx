@@ -1,5 +1,6 @@
 "use client";
 
+import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 
 interface ProvidersProps {
@@ -8,9 +9,9 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <>
+    <SessionProvider>
       {children}
       <Toaster richColors position="bottom-right" />
-    </>
+    </SessionProvider>
   );
 }
