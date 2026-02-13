@@ -5,6 +5,7 @@ import { Eye, EyeOff, X } from "lucide-react"
 import BuyerIcon from "@/components/icons/buyer"
 import InvestorIcon from "@/components/icons/investor"
 import GoogleIcon from "@/components/icons/google-icon" 
+import { toast } from "sonner"
 type Role = "buyer" | "investor"
 
 type SignInFormProps = {
@@ -16,6 +17,43 @@ export default function SignInForm({ onClose }: SignInFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+
+  const handleSignIn = async () => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await response.json().catch(() => ({}))
+      const message = data.error ?? data.message
+
+      if (response.ok) {
+        toast.success("Signed in successfully", {
+          description: "You can continue to the app.",
+        })
+        onClose?.()
+        return
+      }
+
+      if (response.status === 401) {
+        toast.error("Invalid email or password", { description: message })
+        return
+      }
+
+      if (response.status === 400) {
+        toast.error("Invalid input", { description: message })
+        return
+      }
+
+      toast.error("Something went wrong", { description: "Please try again later." })
+    } catch (error) {
+      console.error(error)
+      toast.error("Connection failed", {
+        description: "Check your network and try again.",
+      })
+    }
+  }
 
   const card = (
     <div className="relative w-full max-w-2xl rounded-2xl bg-card p-10 shadow-lg font-ibm-plex-sans">
@@ -49,7 +87,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
               className={`flex items-center justify-center gap-2 rounded-lg border px-16 py-3 text-base font-medium transition-colors ${
                 selectedRole === "buyer"
                   ? "border-[#04C0AF]! bg-[#E4FFFD] text-[#096D64]"
-                  : "border-neutral-50 bg-card text-muted-foreground hover:border-neutral-100"
+                  : "border-border bg-card text-muted-foreground hover:border-border"
               }`}
             >
               <BuyerIcon active={selectedRole === "buyer"} />
@@ -61,7 +99,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
               className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-base font-medium transition-colors ${
                 selectedRole === "investor"
                   ? "border-[#04C0AF]! bg-[#E4FFFD] text-[#096D64]"
-                  : "border-neutral bg-card text-muted-foreground hover:border-neutral-100"
+                  : "border-border bg-card text-muted-foreground hover:border-border"
               }`}
             >
               <InvestorIcon active={selectedRole === "investor"} />
@@ -131,7 +169,8 @@ export default function SignInForm({ onClose }: SignInFormProps) {
         {/* Continue Button */}
         <button
           type="button"
-          className="mt-4 w-full rounded-xl bg-[#04C0AF] py-3.5 text-lg text-white shadow-md transition-colors hover:bg-[#3dbdb5] active:bg-[#35aba3]"
+          className="mt-4 w-full rounded-xl cursor-pointer bg-[#04C0AF] hover:bg-[#3dbdb5]/80 active:bg-[#35aba3] py-3.5 text-lg text-white shadow-md transition-colors"
+          onClick={handleSignIn}
         >
           Continue
         </button>
