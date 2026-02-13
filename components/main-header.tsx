@@ -2,7 +2,11 @@
 
 import { Moon, Plus, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import SignInForm from "./sign-in-form";
+import SignUpForm from "./sign-up-form";
 import ParcelLogo from "@/public/images/parcel.png";
+import ParcelLogoDark from "@/public/images/parcel-dark.png";
 import Image from "next/image";
 
 const THEME_KEY = "theme";
@@ -10,6 +14,16 @@ const THEME_KEY = "theme";
 export const MainHeader = () => {
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(typeof window !== "undefined" && window.scrollY > 0);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -38,12 +52,26 @@ export const MainHeader = () => {
   };
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 w-full border-b border-white/20 px-6 py-4 backdrop-blur-md md:px-20">
+    <header
+      className={`fixed left-0 right-0 top-0 z-50 w-full border-b px-6 py-4 transition-colors md:px-20 ${
+        scrolled
+          ? isDark
+            ? "border-white/20 bg-neutral-900"
+            : "border-neutral-200 bg-white"
+          : "border-white/20 backdrop-blur-md"
+      }`}
+    >
       <nav className="flex items-center justify-between">
         {/* Logo: Parcel + HAWK */}
         <div className="flex flex-col">
           <div className="flex items-center">
-            <Image src={ParcelLogo} alt="Parcel" width={100} height={36} className="h-8 w-auto" />
+            <Image
+              src={scrolled && !isDark ? ParcelLogoDark : ParcelLogo}
+              alt="Parcel"
+              width={100}
+              height={36}
+              className="h-8 w-auto"
+            />
           </div>
         </div>
 
@@ -52,51 +80,141 @@ export const MainHeader = () => {
           {/* Add Listing button */}
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-lg border border-white px-4 py-2 text-md font-medium text-white transition-colors hover:bg-white/70 hover:border-neutral-400"
+            className={`flex items-center gap-1.5 rounded-lg border px-4 py-2 text-md font-medium transition-colors ${
+              scrolled
+                ? isDark
+                  ? "border-white/50 text-white hover:bg-white/20 hover:border-white"
+                  : "border-neutral-300 text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400"
+                : "border-white text-white hover:bg-white/70 hover:border-neutral-400"
+            }`}
           >
             <Plus className="h-4 w-4" />
             <span>Add Listing</span>
           </button>
 
-          {/* Login button */}
-          <button
-            type="button"
-            className="rounded-lg border border-white px-5 py-2 text-md font-medium text-white transition-colors hover:bg-white/70 hover:border-neutral-400"
+          {/* Log in & Sign up */}
+          <div
+            className={`flex items-center rounded-lg border text-md font-medium ${
+              scrolled
+                ? isDark
+                  ? "border-white/50 text-white"
+                  : "border-neutral-300 text-neutral-800"
+                : "border-white text-white"
+            }`}
           >
-            Login
-          </button>
+            <button
+              type="button"
+              onClick={() => setShowSignInModal(true)}
+              className={`rounded-l-md px-4 py-2 transition-colors ${
+                scrolled
+                  ? isDark
+                    ? "hover:bg-white/20 hover:border-white"
+                    : "hover:bg-neutral-100 hover:border-neutral-400"
+                  : "hover:bg-white/70 hover:border-neutral-400"
+              }`}
+            >
+              Log in
+            </button>
+            <span
+              className={`h-4 w-px ${
+                scrolled && !isDark ? "bg-neutral-300" : "bg-white/60"
+              }`}
+              aria-hidden
+            />
+            <button
+              type="button"
+              onClick={() => setShowSignUpModal(true)}
+              className={`rounded-r-md px-4 py-2 transition-colors ${
+                scrolled
+                  ? isDark
+                    ? "hover:bg-white/20 hover:border-white"
+                    : "hover:bg-neutral-100 hover:border-neutral-400"
+                  : "hover:bg-white/70 hover:border-neutral-400"
+              }`}
+            >
+              Sign up
+            </button>
+          </div>
 
           {/* Theme toggle */}
           {mounted && (
-            <div className="flex items-center rounded-full border border-white p-0.5 shadow-sm">
+            <div
+              className={`flex items-center rounded-full border p-0.5 shadow-sm ${
+                scrolled ? (isDark ? "border-white/50" : "border-neutral-300") : "border-white"
+              }`}
+            >
               <button
                 onClick={toggleTheme}
                 type="button"
                 className={`rounded-full p-2 transition-colors ${
                   !isDark
                     ? "bg-neutral-200 text-black"
-                    : "text-neutral-600 hover:text-neutral-800"
+                    : "text-white hover:text-white"
                 }`}
                 aria-label="Light mode"
               >
-                <Sun className="h-4 w-4 text-white" />
+                <Sun className={scrolled && !isDark ? "h-4 w-4 text-amber-500" : "h-4 w-4 text-white"} />
               </button>
               <button
                 onClick={toggleTheme}
                 type="button"
                 className={`rounded-full p-2 transition-colors ${
                   isDark
-                    ? "bg-neutral-200/80 text-neutral-800"
+                    ? "bg-white/20 text-white"
                     : "text-neutral-600 hover:text-neutral-800"
                 }`}
                 aria-label="Dark mode"
               >
-                <Moon className="h-4 w-4 text-white" />
+                <Moon className={scrolled && !isDark ? "h-4 w-4 text-neutral-600" : "h-4 w-4 text-white"} />
               </button>
             </div>
           )}
         </div>
       </nav>
+
+      {/* Sign-in modal */}
+      {mounted &&
+        showSignInModal &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 z-100 flex h-full w-full items-center justify-center">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/50 animate-in fade-in animation-duration-200"
+              aria-label="Close modal"
+              onClick={() => setShowSignInModal(false)}
+            />
+            <div
+              className="relative z-10 px-4 animate-in fade-in zoom-in-95 animation-duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <SignInForm onClose={() => setShowSignInModal(false)} />
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* Sign-up modal */}
+      {mounted &&
+        showSignUpModal &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 z-100 flex h-full w-full items-center justify-center">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/50 animate-in fade-in animation-duration-200"
+              aria-label="Close modal"
+              onClick={() => setShowSignUpModal(false)}
+            />
+            <div
+              className="relative z-10 px-4 animate-in fade-in zoom-in-95 animation-duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <SignUpForm onClose={() => setShowSignUpModal(false)} />
+            </div>
+          </div>,
+          document.body
+        )}
     </header>
   );
 };

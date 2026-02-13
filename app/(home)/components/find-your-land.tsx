@@ -3,7 +3,15 @@ import findLocationBg from "@/public/images/find-location-bg.png"
 
 export function FindYourLandCta() {
   return (
-    <section className="relative font-ibm-plex-sans overflow-hidden bg-muted py-16 md:py-24" style={{ backgroundImage: `url(${findLocationBg.src})` }}>
+    <section
+      className="relative font-ibm-plex-sans overflow-hidden bg-muted py-16 md:py-24 dark:bg-[#101010]"
+      style={{ backgroundImage: `url(${findLocationBg.src})` }}
+    >
+      {/* Dark mode overlay: dims background image for contrast */}
+      <div
+        className="absolute inset-0 z-0 bg-white/30 dark:bg-[#101010]"
+        aria-hidden
+      />
 
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-2xl px-4 text-center">
@@ -17,13 +25,13 @@ export function FindYourLandCta() {
         <div className="mt-8 flex items-center justify-center gap-4">
           <Link
             href="/explore"
-            className="inline-flex items-center justify-center rounded-md bg-[#00C9A7] text-white px-6 py-2.5 text-sm font-medium transition-colors hover:bg-[#3dba8f]"
+            className="inline-flex items-center justify-center rounded-md bg-[#00C9A7] px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#3dba8f] dark:bg-[#04C0AF] dark:hover:bg-[#05d4c0]"
           >
             Start Exploring
           </Link>
           <Link
             href="/list"
-            className="inline-flex items-center justify-center rounded-md bg-foreground px-6 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+            className="inline-flex items-center justify-center rounded-md bg-foreground px-6 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 dark:bg-white dark:text-neutral-900 dark:hover:bg-white/90"
           >
             List Your Land
           </Link>
