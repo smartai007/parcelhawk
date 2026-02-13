@@ -1,6 +1,7 @@
 "use client";
 
 import { Moon, Plus, Sun } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import SignInForm from "./sign-in-form";
@@ -12,11 +13,13 @@ import Image from "next/image";
 const THEME_KEY = "theme";
 
 export const MainHeader = () => {
+  const { data: session, status } = useSession();
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const isSignedIn = status === "authenticated" && !!session;
 
   useEffect(() => {
     const onScroll = () => setScrolled(typeof window !== "undefined" && window.scrollY > 0);
@@ -92,49 +95,65 @@ export const MainHeader = () => {
             <span>Add Listing</span>
           </button>
 
-          {/* Log in & Sign up */}
-          <div
-            className={`flex items-center rounded-lg border text-md font-medium ${
-              scrolled
-                ? isDark
-                  ? "border-white/50 text-white"
-                  : "border-neutral-300 text-neutral-800"
-                : "border-white text-white"
-            }`}
-          >
+          {/* Log in & Sign up, or Sign out when authenticated */}
+          {isSignedIn ? (
             <button
               type="button"
-              onClick={() => setShowSignInModal(true)}
-              className={`rounded-l-md px-4 py-2 transition-colors ${
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className={`rounded-lg border px-4 py-2 text-md font-medium transition-colors ${
                 scrolled
                   ? isDark
-                    ? "hover:bg-white/20 hover:border-white"
-                    : "hover:bg-neutral-100 hover:border-neutral-400"
-                  : "hover:bg-white/70 hover:border-neutral-400"
+                    ? "border-white/50 text-white hover:bg-white/20 hover:border-white"
+                    : "border-neutral-300 text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400"
+                  : "border-white text-white hover:bg-white/70 hover:border-neutral-400"
               }`}
             >
-              Log in
+              Sign out
             </button>
-            <span
-              className={`h-4 w-px ${
-                scrolled && !isDark ? "bg-neutral-300" : "bg-white/60"
-              }`}
-              aria-hidden
-            />
-            <button
-              type="button"
-              onClick={() => setShowSignUpModal(true)}
-              className={`rounded-r-md px-4 py-2 transition-colors ${
+          ) : (
+            <div
+              className={`flex items-center rounded-lg border text-md font-medium ${
                 scrolled
                   ? isDark
-                    ? "hover:bg-white/20 hover:border-white"
-                    : "hover:bg-neutral-100 hover:border-neutral-400"
-                  : "hover:bg-white/70 hover:border-neutral-400"
+                    ? "border-white/50 text-white"
+                    : "border-neutral-300 text-neutral-800"
+                  : "border-white text-white"
               }`}
             >
-              Sign up
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => setShowSignInModal(true)}
+                className={`rounded-l-md px-4 py-2 transition-colors ${
+                  scrolled
+                    ? isDark
+                      ? "hover:bg-white/20 hover:border-white"
+                      : "hover:bg-neutral-100 hover:border-neutral-400"
+                    : "hover:bg-white/70 hover:border-neutral-400"
+                }`}
+              >
+                Log in
+              </button>
+              <span
+                className={`h-4 w-px ${
+                  scrolled && !isDark ? "bg-neutral-300" : "bg-white/60"
+                }`}
+                aria-hidden
+              />
+              <button
+                type="button"
+                onClick={() => setShowSignUpModal(true)}
+                className={`rounded-r-md px-4 py-2 transition-colors ${
+                  scrolled
+                    ? isDark
+                      ? "hover:bg-white/20 hover:border-white"
+                      : "hover:bg-neutral-100 hover:border-neutral-400"
+                    : "hover:bg-white/70 hover:border-neutral-400"
+                }`}
+              >
+                Sign up
+              </button>
+            </div>
+          )}
 
           {/* Theme toggle */}
           {mounted && (

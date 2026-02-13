@@ -1,11 +1,13 @@
 "use client"
 
+import { signIn } from "next-auth/react"
 import { useState } from "react"
 import { Eye, EyeOff, X } from "lucide-react"
 import BuyerIcon from "@/components/icons/buyer"
 import InvestorIcon from "@/components/icons/investor"
-import GoogleIcon from "@/components/icons/google-icon" 
+import GoogleIcon from "@/components/icons/google-icon"
 import { toast } from "sonner"
+
 type Role = "buyer" | "investor"
 
 type SignInFormProps = {
@@ -20,15 +22,13 @@ export default function SignInForm({ onClose }: SignInFormProps) {
 
   const handleSignIn = async () => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn("credentials", {
+        email: email.trim(),
+        password,
+        redirect: false,
       })
-      const data = await response.json().catch(() => ({}))
-      const message = data.error ?? data.message
 
-      if (response.ok) {
+      if (result?.ok) {
         toast.success("Signed in successfully", {
           description: "You can continue to the app.",
         })
@@ -36,17 +36,16 @@ export default function SignInForm({ onClose }: SignInFormProps) {
         return
       }
 
-      if (response.status === 401) {
-        toast.error("Invalid email or password", { description: message })
+      if (result?.error === "CredentialsSignin" || result?.status === 401) {
+        toast.error("Invalid email or password", {
+          description: "Please check your credentials and try again.",
+        })
         return
       }
 
-      if (response.status === 400) {
-        toast.error("Invalid input", { description: message })
-        return
-      }
-
-      toast.error("Something went wrong", { description: "Please try again later." })
+      toast.error("Something went wrong", {
+        description: result?.error ?? "Please try again later.",
+      })
     } catch (error) {
       console.error(error)
       toast.error("Connection failed", {
