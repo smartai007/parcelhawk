@@ -30,7 +30,7 @@ const landTypes = [
 
 export default function ExploreLandTypes() {
   return (
-    <section className="bg-background py-16 px-6 md:py-24">
+    <section className="bg-background py-8 px-6 md:py-12">
       <div className="mx-auto max-w-6xl font-ibm-plex-sans">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-medium font-phudu uppercase tracking-wider text-foreground md:text-4xl lg:text-5xl text-balance">
@@ -49,13 +49,13 @@ export default function ExploreLandTypes() {
               href="#"
               className="group relative overflow-hidden rounded-2xl"
             >
-              <div className="aspect-3/4 w-full">
+              <div className="h-[250px] w-full">
                 <Image
                   src={type.image || "/placeholder.svg"}
                   alt={`${type.name} land listings`}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  sizes="(max-width: 300px) 50vw, (max-width: 270px) 33vw, 20vw"
                 />
               </div>
               <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />

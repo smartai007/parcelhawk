@@ -61,11 +61,11 @@ export default function HeroSection() {
   const [searchQuery, setSearchQuery] = useState("")
 
   return (
-    <section className="relative flex min-h-[calc(100vh)] -mt-[80px] flex-col items-center justify-center bg-neutral-900 px-4 bg-cover bg-center" style={{ backgroundImage: `url(${HeroBg.src})` }}>
+    <section className="relative flex min-h-[calc(500px)] -mt-[80px] flex-col items-center justify-center bg-neutral-900 px-4 bg-cover bg-center" style={{ backgroundImage: `url(${HeroBg.src})` }}>
       {/* Subtle radial overlay for depth */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.03)_0%,transparent_70%)]" />
 
-      <div className="relative z-10 flex flex-col items-center gap-6 text-center">
+      <div className="relative z-10 flex flex-col items-center gap-6 mt-20 text-center">
         {/* Heading */}
         <h1 className="font-phudu text-balance text-3xl font-medium uppercase tracking-wider text-white md:text-4xl lg:text-5xl">
           Find Your Perfect Land
@@ -99,7 +99,7 @@ export default function HeroSection() {
           />
           <button
             type="button"
-            className="flex justify-between gap-2 items-center rounded-md bg-[#04C0AF] px-4 py-2.5 text-sm font-medium text-white backdrop-blur-md transition-colors hover:bg-[#04C0AF]/90"
+            className="flex justify-between gap-2 items-center rounded-md bg-[#04C0AF] px-4 py-2.5 text-sm font-medium text-white backdrop-blur-md transition-colors hover:bg-[#3dba8f] cursor-pointer"
           >
             <Search className="h-4 w-4" />
             <span>Search</span>
