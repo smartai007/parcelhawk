@@ -14,6 +14,16 @@ interface PropertyCardProps {
   acreage: string
 }
 
+// land.com URLs like https://assets.land.com/resizedimages/0/1101/w/80/w/1-5533372506
+// Use a larger width for card display (e.g. 600px)
+function getImageSrc(url: string): string {
+  if (!url) return "/placeholder.svg"
+  if (url.startsWith("https://assets.land.com/") && url.includes("/w/80/")) {
+    return url.replace("/w/80/", "/w/300/")
+  }
+  return url
+}
+
 export function PropertyCard({
   image,
   category,
@@ -29,7 +39,7 @@ export function PropertyCard({
     <div className="group flex flex-col font-ibm-plex-sans p-4 rounded-xl bg-[#F3F3F5]">
       <div className="relative aspect-4/3 overflow-hidden rounded-xl">
         <Image
-          src={image || "/placeholder.svg"}
+          src={getImageSrc(image)}
           alt={name}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"

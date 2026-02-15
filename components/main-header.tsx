@@ -95,8 +95,21 @@ export const MainHeader = () => {
             <span>Add Listing</span>
           </button>
 
-          {/* Log in & Sign up, or Sign out when authenticated */}
-          {isSignedIn ? (
+          {/* Log in & Sign up, or Sign out when authenticated — hide until session is resolved to avoid flash */}
+          {status === "loading" ? (
+            <div
+              className={`min-w-30 rounded-lg border px-4 py-2 ${
+                scrolled
+                  ? isDark
+                    ? "border-white/50"
+                    : "border-neutral-300"
+                  : "border-white"
+              }`}
+              aria-hidden
+            >
+              <span className="invisible text-md">Log in</span>
+            </div>
+          ) : isSignedIn ? (
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
