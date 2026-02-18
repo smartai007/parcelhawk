@@ -1,10 +1,11 @@
 "use client"
 
-import { Search, SlidersHorizontal, ChevronDown, Heart } from "lucide-react"
+import { Search, ChevronDown, Heart } from "lucide-react"
 import { PropertyCard } from "@/components/property-card"
 import PriceRange from "@/components/price-range"
 import SizeRange from "@/components/size-range"
 import FilterOption from "@/components/filter-option"
+import { MarketplaceMap } from "@/components/marketplace-map"
 import { useEffect, useState } from "react"
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -14,68 +15,14 @@ const CATEGORY_COLORS: Record<string, string> = {
   Farm: "#6b7b6b",
 }
 
-// TODO: Remove this once the API is implemented
+// Fallback when API fails; no lat/lng so map will show default view
 const properties = [
-  {
-    id: 1,
-    image: "/images/property-1.png",
-    name: "Whispering Pines",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-    category: "Recreational",
-    categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b",
-  },
-  {
-    id: 2,
-    image: "/images/property-2.png",
-    name: "Whispering Pines",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-    category: "Recreational",
-    categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b",
-  },
-  {
-    id: 3,
-    image: "/images/property-3.png",
-    name: "Whispering Pines",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-    category: "Recreational",
-    categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b",
-  },
-  {
-    id: 4,
-    image: "/images/property-4.png",
-    name: "Whispering Pines",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-    category: "Recreational",
-    categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b",
-  },
-  {
-    id: 5,
-    image: "/images/property-1.png",
-    name: "Whispering Pines",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-    category: "Recreational",
-    categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b",
-  },
-  {
-    id: 6,
-    image: "/images/property-2.png",
-    name: "Whispering Pines",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-    category: "Recreational",
-    categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b",
-  },
+  { id: 1, image: "/images/property-1.png", name: "Whispering Pines", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres", category: "Recreational", categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b" },
+  { id: 2, image: "/images/property-2.png", name: "Whispering Pines", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres", category: "Recreational", categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b" },
+  { id: 3, image: "/images/property-3.png", name: "Whispering Pines", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres", category: "Recreational", categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b" },
+  { id: 4, image: "/images/property-4.png", name: "Whispering Pines", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres", category: "Recreational", categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b" },
+  { id: 5, image: "/images/property-1.png", name: "Whispering Pines", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres", category: "Recreational", categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b" },
+  { id: 6, image: "/images/property-2.png", name: "Whispering Pines", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres", category: "Recreational", categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b" },
 ]
 
 function getBaseUrl() {
@@ -87,29 +34,36 @@ export default function MarketplacePage() {
   const [listingsData, setListingsData] = useState<any[]>([])
   const [savedSearch, setSavedSearch] = useState(false)
 
-  const fetchListings = async () => {
-    const listing = await fetch(`${getBaseUrl()}/api/near-by`).then((res) =>
-      res.json()
-    );
-    const listingsData = listing.map((listing: any) => ({
-      id: listing.id,
-      image: listing.photos[0],
-      category: listing.propertyType[0],
-      categoryColor: "#3b8a6e",
-      name: listing.title,
-      price: listing.price,
-      location: listing.city,
-      acreage: listing.acres,
-    }));
-    setListingsData(listingsData);
-  };
-
   useEffect(() => {
-    console.log("fetching listings");
-    const listings = fetchListings();
-    console.log("listings", listings);
-    setListingsData(listingsData);
-  }, []);
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await fetch(`${getBaseUrl()}/api/near-by`)
+        if (!res.ok) return
+        const contentType = res.headers.get("content-type") ?? ""
+        if (!contentType.includes("application/json")) return
+        const listing = await res.json()
+        if (cancelled || !Array.isArray(listing)) return
+        const mapped = listing.map((item: any) => ({
+          id: item.id,
+          image: item.photos?.[0],
+          category: item.propertyType?.[0],
+          categoryColor: "#3b8a6e",
+          name: item.title,
+          price: item.price,
+          location: item.city,
+          acreage: item.acres,
+          latitude: item.latitude != null ? Number(item.latitude) : null,
+          longitude: item.longitude != null ? Number(item.longitude) : null,
+        }))
+        setListingsData(mapped)
+      } catch {
+        setListingsData(properties)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
 
   return (
     <div className="flex h-full w-full flex-col font-ibm-plex-sans">
@@ -146,7 +100,12 @@ export default function MarketplacePage() {
 
       {/* Map + List */}
       <div className="flex min-h-0 flex-1">
-        <div className="min-w-0 flex-1 bg-muted/30" aria-hidden />
+        <div className="min-w-0 flex-1 min-h-0">
+          <MarketplaceMap
+            listings={listingsData}
+            className="h-full w-full rounded-r-lg"
+          />
+        </div>
         <div className="flex w-1/2 shrink-0 flex-col overflow-hidden border-l border-border bg-background">
       {/* Header */}
       <div className="shrink-0 border-b border-border px-5 pb-4 pt-5">
