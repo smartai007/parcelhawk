@@ -9,13 +9,12 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  // Example: protect routes that require auth (e.g. /dashboard)
-  // const isProtected = request.nextUrl.pathname.startsWith("/dashboard");
-  // if (isProtected && !token) {
-  //   const signInUrl = new URL("/", request.url);
-  //   signInUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
-  //   return NextResponse.redirect(signInUrl);
-  // }
+  const path = request.nextUrl.pathname;
+  const protectedPaths = ["/profile-setting"];
+  const isProtected = protectedPaths.some((p) => path === p || path.startsWith(p + "/"));
+  if (isProtected && !token) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
   const response = NextResponse.next();
   return response;
