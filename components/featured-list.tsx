@@ -1,6 +1,10 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { ArrowUpRight } from "lucide-react"
 import { PropertyCard } from "./property-card"
 
+// TODO: Remove this once the API is implemented
 const listings = [
   {
     image: "/images/property-1.png",
@@ -45,20 +49,32 @@ function getBaseUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 
-export async function FeaturedListings() {
-  const listing = await fetch(`${getBaseUrl()}/api/near-by`).then((res) =>
-    res.json()
-  );
-  const listingsData = listing.map((listing: any) => ({
-    id: listing.id,
-    image: listing.photos[0],
-    category: listing.propertyType[0],
-    categoryColor: "#3b8a6e",
-    name: listing.title,
-    price: listing.price,
-    location: listing.city,
-    acreage: listing.acres,
-  }));
+export function FeaturedListings() {
+  const [listingsData, setListingsData] = useState<any[]>([]);
+
+  const fetchListings = async () => {
+    const listing = await fetch(`${getBaseUrl()}/api/near-by`).then((res) =>
+      res.json()
+    );
+    const listingsData = listing.map((listing: any) => ({
+      id: listing.id,
+      image: listing.photos[0],
+      category: listing.propertyType[0],
+      categoryColor: "#3b8a6e",
+      name: listing.title,
+      price: listing.price,
+      location: listing.city,
+      acreage: listing.acres,
+    }));
+    setListingsData(listingsData);
+  };
+
+  useEffect(() => {
+    console.log("fetching listings");
+    const listings = fetchListings();
+    console.log("listings", listings);
+    setListingsData(listingsData);
+  }, []);
 
   // console.log("listingsData", listingsData);
 

@@ -3,34 +3,28 @@
 import { ChevronDown } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
-// Min: 0–40K | Max: 45K–75K
 const MIN_PRESETS = [
   { label: "No Min", value: 0 },
-  { label: "$5K", value: 5000 },
-  { label: "$10K", value: 10000 },
-  { label: "$15K", value: 15000 },
-  { label: "$20K", value: 20000 },
-  { label: "$25K", value: 25000 },
-  { label: "$30K", value: 30000 },
-  { label: "$35K", value: 35000 },
-  { label: "$40K", value: 40000 },
+  { label: "5 Acres", value: 5 },
+  { label: "10 Acres", value: 10 },
+  { label: "20 Acres", value: 20 },
+  { label: "50 Acres", value: 50 },
+  { label: "100 Acres", value: 100 },
 ] as const
 
 const MAX_PRESETS = [
-  { label: "$45K", value: 45000 },
-  { label: "$50K", value: 50000 },
-  { label: "$55K", value: 55000 },
-  { label: "$60K", value: 60000 },
-  { label: "$65K", value: 65000 },
-  { label: "$70K", value: 70000 },
-  { label: "$75K", value: 75000 },
-  { label: "No MAX", value: 1000000000 },
+  { label: "10 Acres", value: 10 },
+  { label: "20 Acres", value: 20 },
+  { label: "50 Acres", value: 50 },
+  { label: "100 Acres", value: 100 },
+  { label: "200 Acres", value: 200 },
+  { label: "No Max", value: 999999 },
 ] as const
 
-export default function PriceRange() {
+export default function SizeRange() {
   const [open, setOpen] = useState(false)
-  const [minPrice, setMinPrice] = useState("")
-  const [maxPrice, setMaxPrice] = useState("")
+  const [minAcres, setMinAcres] = useState("")
+  const [maxAcres, setMaxAcres] = useState("")
   const [activeInput, setActiveInput] = useState<"min" | "max" | null>(null)
   const [activeMinPreset, setActiveMinPreset] = useState<number | null>(null)
   const [activeMaxPreset, setActiveMaxPreset] = useState<number | null>(null)
@@ -49,14 +43,13 @@ export default function PriceRange() {
   }, [open])
 
   function handlePresetClick(value: number, index: number) {
-    // Use last-focused input: clicking preset blurs the input so activeInput is already null
     const target = activeInput ?? lastActiveInputRef.current
-    const formatted = value.toLocaleString()
+    const formatted = String(value)
     if (target === "min") {
-      setMinPrice(formatted)
+      setMinAcres(formatted)
       setActiveMinPreset(index)
     } else {
-      setMaxPrice(formatted)
+      setMaxAcres(value >= 999999 ? "" : formatted)
       setActiveMaxPreset(index)
     }
   }
@@ -65,42 +58,44 @@ export default function PriceRange() {
     return target === "min" ? activeMinPreset === i : activeMaxPreset === i
   }
 
-  const priceLabel =
-    minPrice || maxPrice
-      ? `${minPrice ? `$${minPrice}` : ""}-${maxPrice ? `$${maxPrice}` : ""}`.replace(/^-|-$/g, "") || "Price"
-      : "Price"
+  const displayLabel =
+    minAcres && maxAcres
+      ? `${minAcres}–${maxAcres} Acres`
+      : minAcres
+        ? `${minAcres}+ Acres`
+        : maxAcres
+          ? `Up to ${maxAcres} Acres`
+          : "Size"
 
   return (
-    <div className="relative inline-block font-ibm-plex-sans" ref={containerRef}>
-      {/* Price dropdown trigger */}
+    <div className="relative inline-block font-ibm-plex-sans text-base" ref={containerRef}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full max-w-32 items-center justify-between gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-[#4ECDC4]/50 hover:text-foreground focus:border-[#4ECDC4] focus:outline-none focus:ring-1 focus:ring-[#4ECDC4]"
+        className="flex w-full max-w-32 items-center justify-between gap-2 rounded-lg border border-border bg-card px-2 py-2.5 text-sm text-muted-foreground transition-colors hover:border-[#4ECDC4]/50 hover:text-foreground focus:border-[#4ECDC4] focus:outline-none focus:ring-1 focus:ring-[#4ECDC4]"
         aria-expanded={open}
         aria-haspopup="true"
       >
-        <span>{priceLabel}</span>
+        <span>{displayLabel}</span>
         <ChevronDown
           className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
           aria-hidden
         />
       </button>
 
-      {/* Dropdown panel */}
       {open && (
         <div className="absolute left-0 top-full z-50 mt-2 w-full min-w-[500px] rounded-2xl bg-card p-6 shadow-lg">
-          <h2 className="text-lg font-medium text-foreground">
-            Price Range
+          <h2 className="font-medium text-foreground">
+            Size Range (Acres)
           </h2>
 
           <div className="mt-4 flex items-center gap-3">
             <input
               type="text"
-              placeholder="Min Price"
-              value={minPrice}
+              placeholder="Min Acres"
+              value={minAcres}
               onChange={(e) => {
-                setMinPrice(e.target.value)
+                setMinAcres(e.target.value)
                 setActiveMinPreset(null)
               }}
               onFocus={() => {
@@ -108,7 +103,7 @@ export default function PriceRange() {
                 lastActiveInputRef.current = "min"
               }}
               onBlur={() => setActiveInput(null)}
-              className={`w-full rounded-lg border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
+              className={`w-full rounded-lg border bg-card px-2 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
                 activeInput === "min"
                   ? "border-[#4ECDC4] ring-2 ring-[#4ECDC4]/30"
                   : "border-border focus:border-[#4ECDC4] focus:ring-[#4ECDC4]"
@@ -117,10 +112,10 @@ export default function PriceRange() {
             <span className="text-muted-foreground">&mdash;</span>
             <input
               type="text"
-              placeholder="Max Price"
-              value={maxPrice}
+              placeholder="Max Acres"
+              value={maxAcres}
               onChange={(e) => {
-                setMaxPrice(e.target.value)
+                setMaxAcres(e.target.value)
                 setActiveMaxPreset(null)
               }}
               onFocus={() => {
@@ -128,7 +123,7 @@ export default function PriceRange() {
                 lastActiveInputRef.current = "max"
               }}
               onBlur={() => setActiveInput(null)}
-              className={`w-full rounded-lg border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
+              className={`w-full rounded-lg border bg-card px-2 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
                 activeInput === "max"
                   ? "border-[#4ECDC4] ring-2 ring-[#4ECDC4]/30"
                   : "border-border focus:border-[#4ECDC4] focus:ring-[#4ECDC4]"
@@ -143,7 +138,7 @@ export default function PriceRange() {
                     key={preset.value}
                     type="button"
                     onClick={() => handlePresetClick(preset.value, i)}
-                    className={`rounded-lg border px-10 py-2.5 text-sm font-medium transition-colors ${
+                    className={`rounded-lg border px-2 py-2.5 text-sm font-medium transition-colors ${
                       isPresetActive("min", i)
                         ? "border-[#4ECDC4] bg-[#4ECDC4]/10 text-foreground"
                         : "border-border bg-card text-muted-foreground hover:border-[#4ECDC4]/50 hover:text-foreground"
@@ -157,7 +152,7 @@ export default function PriceRange() {
                     key={preset.value}
                     type="button"
                     onClick={() => handlePresetClick(preset.value, i)}
-                    className={`rounded-lg border px-10 py-2.5 text-sm font-medium transition-colors ${
+                    className={`rounded-lg border px-2 py-2.5 text-sm font-medium transition-colors ${
                       isPresetActive("max", i)
                         ? "border-[#4ECDC4] bg-[#4ECDC4]/10 text-foreground"
                         : "border-border bg-card text-muted-foreground hover:border-[#4ECDC4]/50 hover:text-foreground"
@@ -172,8 +167,8 @@ export default function PriceRange() {
             <button
               type="button"
               onClick={() => {
-                setMinPrice("")
-                setMaxPrice("")
+                setMinAcres("")
+                setMaxAcres("")
                 setActiveMinPreset(null)
                 setActiveMaxPreset(null)
               }}
