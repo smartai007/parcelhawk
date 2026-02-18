@@ -49,31 +49,43 @@ function getBaseUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 
+function parseJsonSafe<T>(res: Response): Promise<T> {
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!res.ok || !contentType.includes("application/json")) {
+    return Promise.resolve([] as T);
+  }
+  return res.json();
+}
+
 export function FeaturedListings() {
   const [listingsData, setListingsData] = useState<any[]>([]);
 
-  const fetchListings = async () => {
-    const listing = await fetch(`${getBaseUrl()}/api/near-by`).then((res) =>
-      res.json()
-    );
-    const listingsData = listing.map((listing: any) => ({
-      id: listing.id,
-      image: listing.photos[0],
-      category: listing.propertyType[0],
-      categoryColor: "#3b8a6e",
-      name: listing.title,
-      price: listing.price,
-      location: listing.city,
-      acreage: listing.acres,
-    }));
-    setListingsData(listingsData);
-  };
-
   useEffect(() => {
-    console.log("fetching listings");
-    const listings = fetchListings();
-    console.log("listings", listings);
-    setListingsData(listingsData);
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch(`${getBaseUrl()}/api/near-by`);
+        const raw = await parseJsonSafe<any[]>(res);
+        if (cancelled || !Array.isArray(raw)) return;
+        const mapped = raw.map((listing: any) => ({
+          id: listing.id,
+          image: listing.photos?.[0],
+          category: listing.propertyType?.[0],
+          categoryColor: "#3b8a6e",
+          name: listing.title,
+          price: listing.price,
+          location: listing.city,
+          acreage: listing.acres,
+        }));
+        setListingsData(mapped);
+      } catch {
+        if (!cancelled) setListingsData(listings);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // console.log("listingsData", listingsData);
