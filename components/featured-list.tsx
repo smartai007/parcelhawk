@@ -1,6 +1,10 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { ArrowUpRight } from "lucide-react"
 import { PropertyCard } from "./property-card"
 
+// TODO: Remove this once the API is implemented
 const listings = [
   {
     image: "/images/property-1.png",
@@ -40,7 +44,40 @@ const listings = [
   },
 ]
 
+function getBaseUrl() {
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+}
+
 export function FeaturedListings() {
+  const [listingsData, setListingsData] = useState<any[]>([]);
+
+  const fetchListings = async () => {
+    const listing = await fetch(`${getBaseUrl()}/api/near-by`).then((res) =>
+      res.json()
+    );
+    const listingsData = listing.map((listing: any) => ({
+      id: listing.id,
+      image: listing.photos[0],
+      category: listing.propertyType[0],
+      categoryColor: "#3b8a6e",
+      name: listing.title,
+      price: listing.price,
+      location: listing.city,
+      acreage: listing.acres,
+    }));
+    setListingsData(listingsData);
+  };
+
+  useEffect(() => {
+    console.log("fetching listings");
+    const listings = fetchListings();
+    console.log("listings", listings);
+    setListingsData(listingsData);
+  }, []);
+
+  // console.log("listingsData", listingsData);
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="text-center font-ibm-plex-sans">
@@ -54,7 +91,7 @@ export function FeaturedListings() {
       </div>
 
       <div className="mt-12 grid grid-cols-1 font-ibm-plex-sans gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {listings.map((listing, index) => (
+        {listingsData.map((listing: any, index: number) => (
           <PropertyCard key={index} {...listing} />
         ))}
       </div>
