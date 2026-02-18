@@ -10,6 +10,7 @@ import ParcelLogo from "@/public/images/parcel.png";
 import ParcelLogoDark from "@/public/images/parcel-dark.png";
 import BuyerProfileSidebar from "./buyer-profile-sidebar";
 import Image from "next/image";
+import Link from "next/link";
 
 const THEME_KEY = "theme";
 
@@ -57,7 +58,7 @@ export const MainHeader = () => {
     >
       <nav className="flex items-center justify-between">
         {/* Logo: Parcel + HAWK */}
-        <div className="flex flex-col">
+        <Link href="/" className="flex flex-col focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded">
           <div className="flex items-center">
             <Image
               src={!isDark ? ParcelLogoDark : ParcelLogo}
@@ -67,7 +68,7 @@ export const MainHeader = () => {
               className="h-8 w-auto"
             />
           </div>
-        </div>
+        </Link>
 
         {/* Right side actions */}
         <div className="font-ibm-plex-sans flex items-center gap-3">
