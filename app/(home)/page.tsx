@@ -5,6 +5,8 @@ import WhyParcel from "./components/why-parcel";
 import { FeaturedListings } from "@/components/featured-list";
 import { FindYourLandCta } from "./components/find-your-land";
 
+export const dynamic = "force-dynamic";
+
 export default function HomePage() {
   return (
     <>
