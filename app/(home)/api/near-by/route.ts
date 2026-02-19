@@ -1,12 +1,11 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { arrayContains } from "drizzle-orm";
 import { db } from "@/db";
 import { landListings } from "@/db/schema";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type")?.trim() || null;
+    const type = request.nextUrl.searchParams.get("type")?.trim() ?? null;
 
     const rows = type
       ? await db
