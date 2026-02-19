@@ -2,12 +2,12 @@
 
 import { Search, ChevronDown, Heart } from "lucide-react"
 import { useSearchParams } from "next/navigation"
+import { Suspense, useEffect, useState } from "react"
 import { PropertyCard } from "@/components/property-card"
 import PriceRange from "@/components/price-range"
 import SizeRange from "@/components/size-range"
 import FilterOption from "@/components/filter-option"
 import { MarketplaceMap } from "@/components/marketplace-map"
-import { useEffect, useState } from "react"
 
 const CATEGORY_COLORS: Record<string, string> = {
   Recreational: "#3b8a6e",
@@ -33,7 +33,7 @@ function getBaseUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 
-export default function MarketplacePage() {
+function MarketplacePageContent() {
   const searchParams = useSearchParams()
   const typeFromUrl = searchParams.get("type") ?? ""
   const [listingsData, setListingsData] = useState<any[]>([])
@@ -193,5 +193,21 @@ export default function MarketplacePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function MarketplacePageFallback() {
+  return (
+    <div className="flex h-[calc(100vh-73px)] w-full items-center justify-center font-ibm-plex-sans">
+      <p className="text-sm text-muted-foreground">Loading marketplace…</p>
+    </div>
+  )
+}
+
+export default function MarketplacePage() {
+  return (
+    <Suspense fallback={<MarketplacePageFallback />}>
+      <MarketplacePageContent />
+    </Suspense>
   )
 }
