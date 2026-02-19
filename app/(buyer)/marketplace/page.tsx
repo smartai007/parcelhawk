@@ -132,7 +132,7 @@ function MarketplacePageContent() {
               <div>
                 <h1 className="text-lg font-medium text-foreground">Acreage</h1>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  6 results in current map area
+                  {listingsData.length} results in current map area
                 </p>
               </div>
               <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
