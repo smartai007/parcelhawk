@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 
 const landTypes = [
   {
@@ -44,12 +45,12 @@ export default function ExploreLandTypes() {
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {landTypes.map((type) => (
-            <a
+            <Link
               key={type.name}
-              href="#"
+              href={`/marketplace?type=${encodeURIComponent(type.name)}`}
               className="group relative overflow-hidden rounded-2xl"
             >
-              <div className="h-[250px] w-full">
+              <div className="relative h-[250px] w-full">
                 <Image
                   src={type.image || "/placeholder.svg"}
                   alt={`${type.name} land listings`}
@@ -67,7 +68,7 @@ export default function ExploreLandTypes() {
                   {type.listings} Listings
                 </p>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
