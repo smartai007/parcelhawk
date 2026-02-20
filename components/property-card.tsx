@@ -7,6 +7,7 @@ import { Heart, MapPin, Maximize2, ChevronLeft, ChevronRight } from "lucide-reac
 import { useSignInModal } from "@/lib/sign-in-modal-context"
 
 interface PropertyCardProps {
+  id: number
   /** Single image (used by featured-list); ignored if images is provided */
   image?: string
   /** Multiple images for carousel (used by marketplace) */

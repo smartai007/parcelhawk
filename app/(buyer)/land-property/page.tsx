@@ -1,6 +1,7 @@
 "use client"
 
 import { Search, ChevronDown, Heart } from "lucide-react"
+import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
 import { PropertyCard } from "@/components/property-card"
@@ -8,6 +9,7 @@ import PriceRange from "@/components/price-range"
 import SizeRange from "@/components/size-range"
 import FilterOption from "@/components/filter-option"
 import { MarketplaceMap } from "@/components/marketplace-map"
+import { useSignInModal } from "@/lib/sign-in-modal-context"
 
 const CATEGORY_COLORS: Record<string, string> = {
   Recreational: "#3b8a6e",
@@ -32,11 +34,14 @@ function getBaseUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 
-function MarketplacePageContent() {
+function LandPropertyPageContent() {
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const { openSignInModal } = useSignInModal()
   const typeFromUrl = searchParams.get("type") ?? ""
   const [listingsData, setListingsData] = useState<any[]>([])
   const [savedSearch, setSavedSearch] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
 
   const totalPages = Math.max(1, Math.ceil(listingsData.length / PAGE_SIZE))
@@ -54,8 +59,8 @@ function MarketplacePageContent() {
     async function load() {
       try {
         const url = typeFromUrl
-          ? `${getBaseUrl()}/api/near-by?type=${encodeURIComponent(typeFromUrl)}`
-          : `${getBaseUrl()}/api/near-by`
+          ? `${getBaseUrl()}/api/land-property?type=${encodeURIComponent(typeFromUrl)}`
+          : `${getBaseUrl()}/api/land-property`
         const res = await fetch(url)
         if (!res.ok) return
         const contentType = res.headers.get("content-type") ?? ""
@@ -102,8 +107,31 @@ function MarketplacePageContent() {
         </div>
         <button
           type="button"
-          onClick={() => setSavedSearch((prev) => !prev)}
-          className={`shrink-0 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+          disabled={saving || listingsData.length === 0}
+          onClick={async () => {
+            if (savedSearch) {
+              setSavedSearch(false)
+              return
+            }
+            if (!session) {
+              openSignInModal()
+              return
+            }
+            setSaving(true)
+            try {
+              const res = await fetch("/api/favorites", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  landListingIds: listingsData.map((l) => l.id),
+                }),
+              })
+              if (res.ok) setSavedSearch(true)
+            } finally {
+              setSaving(false)
+            }
+          }}
+          className={`shrink-0 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 ${
             savedSearch
               ? "border border-[#04C0AF] bg-[#04C0AF]/10 text-[#04C0AF] hover:bg-[#04C0AF]/20"
               : "bg-[#04C0AF] text-white hover:bg-[#3dbdb5]"
@@ -112,7 +140,7 @@ function MarketplacePageContent() {
           <Heart
             className={`h-4 w-4 ${savedSearch ? "fill-[#04C0AF]" : "fill-white"}`}
           />
-          {savedSearch ? "Saved" : "Save Search"}
+          {saving ? "Saving…" : savedSearch ? "Saved" : "Save Search"}
         </button>
       </div>
 
@@ -149,6 +177,7 @@ function MarketplacePageContent() {
             <div className="grid grid-cols-2 gap-4">
               {paginatedListings.map((listing: any) => (
                 <PropertyCard
+                  id={listing.id as number}
                   key={listing.id}
                   images={listing.images}
                   category={listing.category}
@@ -195,7 +224,7 @@ function MarketplacePageContent() {
   )
 }
 
-function MarketplacePageFallback() {
+function LandPropertyPageFallback() {
   return (
     <div className="flex h-[calc(100vh-73px)] w-full items-center justify-center font-ibm-plex-sans">
       <p className="text-sm text-muted-foreground">Loading marketplace…</p>
@@ -203,10 +232,10 @@ function MarketplacePageFallback() {
   )
 }
 
-export default function MarketplacePage() {
+export default function LandPropertyPage() {
   return (
-    <Suspense fallback={<MarketplacePageFallback />}>
-      <MarketplacePageContent />
+    <Suspense fallback={<LandPropertyPageFallback />}>
+      <LandPropertyPageContent />
     </Suspense>
   )
 }

@@ -47,7 +47,7 @@ export default function ExploreLandTypes() {
           {landTypes.map((type) => (
             <Link
               key={type.name}
-              href={`/marketplace?type=${encodeURIComponent(type.name)}`}
+              href={`/land-property?type=${encodeURIComponent(type.name)}`}
               className="group relative overflow-hidden rounded-2xl"
             >
               <div className="relative h-[250px] w-full">

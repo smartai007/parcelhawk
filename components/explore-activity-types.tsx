@@ -3,27 +3,27 @@ import Link from "next/link"
 
 const activityTypes = [
   {
-    name: "Undeveloped Land",
+    name: "Hunting",
     listings: "2,400+",
     image: "/images/acreage.png",
   },
   {
-    name: "Farms",
+    name: "Fishing",
     listings: "850+",
     image: "/images/farms.png",
   },
   {
-    name: "Ranches",
+    name: "Boating",
     listings: "1,200+",
     image: "/images/ranches.png",
   },
   {
-    name: "Residential Property",
+    name: "Beach",
     listings: "600+",
     image: "/images/investment.png",
   },
   {
-    name: "Commercial Property",
+    name: "Horseback Riding",
     listings: "450+",
     image: "/images/off-grid.png",
   },
@@ -46,7 +46,7 @@ export default function ExploreActivityTypes() {
           {activityTypes.map((type) => (
             <Link
               key={type.name}
-              href={`/marketplace?type=${encodeURIComponent(type.name)}`}
+              href={`/land-activity?type=${encodeURIComponent(type.name)}`}
               className="group relative overflow-hidden rounded-2xl"
             >
               <div className="relative h-[250px] w-full">
