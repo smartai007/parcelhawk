@@ -2,11 +2,60 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import type { Session } from "next-auth";
 import { db } from "@/db";
-import { favorites } from "@/db/schema";
+import { favorites, landListings } from "@/db/schema";
+import { and, desc, eq } from "drizzle-orm";
 import { authOptions } from "@/lib/auth";
 
 function getUserId(session: Session | null): string | null {
   return (session?.user as { id?: string } | undefined)?.id ?? null;
+}
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  const userId = getUserId(session);
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const rows = await db
+      .select({
+        id: landListings.id,
+        title: landListings.title,
+        price: landListings.price,
+        acres: landListings.acres,
+        city: landListings.city,
+        latitude: landListings.latitude,
+        longitude: landListings.longitude,
+        photos: landListings.photos,
+        propertyType: landListings.propertyType,
+      })
+      .from(favorites)
+      .innerJoin(landListings, eq(favorites.landListingId, landListings.id))
+      .where(eq(favorites.userId, userId))
+      .orderBy(desc(favorites.createdAt));
+
+    const listings = rows.map((row) => ({
+      id: row.id,
+      images: row.photos ?? undefined,
+      category: row.propertyType?.[0],
+      categoryColor: "#3b8a6e",
+      name: row.title ?? "",
+      price: row.price != null ? String(row.price) : "",
+      location: row.city ?? "",
+      acreage: row.acres != null ? String(row.acres) : "",
+      latitude: row.latitude != null ? Number(row.latitude) : null,
+      longitude: row.longitude != null ? Number(row.longitude) : null,
+    }));
+
+    return NextResponse.json(listings);
+  } catch (err) {
+    console.error("Favorites GET error:", err);
+    return NextResponse.json(
+      { error: "Failed to load favorites" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {

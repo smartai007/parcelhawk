@@ -1,14 +1,13 @@
 "use client"
 
-import { Search, ChevronDown, Heart } from "lucide-react"
+import { Search, Heart } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
-import { PropertyCard } from "@/components/property-card"
 import PriceRange from "@/components/price-range"
 import SizeRange from "@/components/size-range"
 import FilterOption from "@/components/filter-option"
-import { MarketplaceMap } from "@/components/marketplace-map"
+import { PropertyMapList } from "@/components/property-map-list"
 import { useSignInModal } from "@/lib/sign-in-modal-context"
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -28,8 +27,6 @@ const properties = [
   { id: 6, image: "/images/property-2.png", name: "Whispering Pines", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres", category: "Recreational", categoryColor: CATEGORY_COLORS["Recreational"] ?? "#6b7b6b" },
 ]
 
-const PAGE_SIZE = 50
-
 function getBaseUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
@@ -42,17 +39,6 @@ function LandPropertyPageContent() {
   const [listingsData, setListingsData] = useState<any[]>([])
   const [savedSearch, setSavedSearch] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-
-  const totalPages = Math.max(1, Math.ceil(listingsData.length / PAGE_SIZE))
-  const paginatedListings = listingsData.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
-  )
-
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [listingsData.length])
 
   useEffect(() => {
     let cancelled = false
@@ -144,82 +130,7 @@ function LandPropertyPageContent() {
         </button>
       </div>
 
-      {/* Map + List: map fixed height, only right panel scrolls */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
-          <MarketplaceMap
-            listings={listingsData}
-            className="h-full w-full rounded-r-lg"
-          />
-        </div>
-        <div className="flex min-h-0 w-1/2 shrink-0 flex-col overflow-hidden border-l border-border bg-background">
-          {/* Header */}
-          <div className="shrink-0 border-b border-border px-5 pb-4 pt-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-lg font-medium text-foreground">Acreage</h1>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {listingsData.length} results in current map area
-                </p>
-              </div>
-              <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-                <span>
-                  {"Sort: "}
-                  <span className="font-semibold text-foreground">Newest</span>
-                </span>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Property Grid - only this area scrolls */}
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              {paginatedListings.map((listing: any) => (
-                <PropertyCard
-                  id={listing.id as number}
-                  key={listing.id}
-                  images={listing.images}
-                  category={listing.category}
-                  categoryColor={listing.categoryColor}
-                  name={listing.name}
-                  price={listing.price}
-                  location={listing.location}
-                  acreage={listing.acreage}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Pagination */}
-          <div className="shrink-0 border-t border-border px-5 py-4">
-            <div className="flex items-center justify-between gap-4">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <p className="text-sm text-muted-foreground">
-                Page{" "}
-                <span className="font-medium text-[#04C0AF]">{currentPage}</span>
-                {" of "}
-                {totalPages}
-              </p>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage >= totalPages}
-                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PropertyMapList listings={listingsData} title="Acreage" />
     </div>
   )
 }
