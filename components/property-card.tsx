@@ -37,6 +37,7 @@ function getImageSrc(url: string): string {
 }
 
 export function PropertyCard({
+  id,
   image,
   images,
   category,
@@ -67,6 +68,15 @@ export function PropertyCard({
     setCurrentIndex((i) => (i + 1) % imageList.length)
   }
 
+  const saveFavorite = async (listingId: number) => {
+    const res = await fetch("/api/favorites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ landListingIds: [listingId] }),
+    })
+    if (res.ok) setIsFavorited(true)
+  }
+
   return (
     <div className="group flex flex-col font-ibm-plex-sans p-4 rounded-xl bg-[#F3F3F5]">
       <div className="group/img relative aspect-4/3 overflow-hidden rounded-xl">
@@ -90,7 +100,7 @@ export function PropertyCard({
               openSignInModal()
               return
             }
-            setIsFavorited(!isFavorited)
+            saveFavorite(id)
           }}
           className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-colors hover:bg-background"
           aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
