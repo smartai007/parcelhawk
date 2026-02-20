@@ -11,13 +11,13 @@ export async function GET(request: NextRequest) {
       ? await db
           .select()
           .from(landListings)
-          .where(arrayContains(landListings.propertyType, [type]))
+          .where(arrayContains(landListings.activities, [type]))
           .limit(100)
-      : await db.select().from(landListings).limit(6);
+      : await db.select().from(landListings).limit(8);
 
     return NextResponse.json(rows);
   } catch (error) {
-    console.error("Near-by API error:", error);
+    console.error("Land Activity API error:", error);
     return NextResponse.json(
       { error: "Failed to fetch listings" },
       { status: 500 }

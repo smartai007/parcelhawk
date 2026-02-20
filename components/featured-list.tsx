@@ -63,7 +63,7 @@ export function FeaturedListings() {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch(`${getBaseUrl()}/api/near-by`);
+        const res = await fetch(`${getBaseUrl()}/api/land-property`);
         const raw = await parseJsonSafe<any[]>(res);
         if (cancelled || !Array.isArray(raw)) return;
         const mapped = raw.map((listing: any) => ({
@@ -103,7 +103,7 @@ export function FeaturedListings() {
 
       <div className="mt-12 grid grid-cols-1 font-ibm-plex-sans gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {listingsData.map((listing: any, index: number) => (
-          <PropertyCard key={index} {...listing} />
+          <PropertyCard key={index} id={listing.id as number} {...listing} />
         ))}
       </div>
 

@@ -1,53 +1,52 @@
 import Image from "next/image"
 import Link from "next/link"
 
-const landTypes = [
+const activityTypes = [
   {
-    name: "Undeveloped Land",
+    name: "Hunting",
     listings: "2,400+",
     image: "/images/acreage.png",
   },
   {
-    name: "Farms",
+    name: "Fishing",
     listings: "850+",
     image: "/images/farms.png",
   },
   {
-    name: "Ranches",
+    name: "Boating",
     listings: "1,200+",
     image: "/images/ranches.png",
   },
   {
-    name: "Residential Property",
+    name: "Beach",
     listings: "600+",
     image: "/images/investment.png",
   },
   {
-    name: "Commercial Property",
+    name: "Horseback Riding",
     listings: "450+",
     image: "/images/off-grid.png",
   },
 ]
 
-export default function ExploreLandTypes() {
+export default function ExploreActivityTypes() {
   return (
     <section className="bg-background py-8 px-6 md:py-12">
       <div className="mx-auto max-w-6xl font-ibm-plex-sans">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-medium font-phudu uppercase tracking-wider text-foreground md:text-4xl lg:text-5xl text-balance">
-            Explore By Land Type
+            BROWSE BY ACTIVITY
           </h2>
           <p className="mx-auto mt-4 max-w-3xl text-muted-foreground">
-            From Sprawling Ranches To Secluded Off-Grid Parcels, Find The
-            Perfect Property For Your Vision.
+            Find Land Perfectly Suited For Your Lifestyle And Goals.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {landTypes.map((type) => (
+          {activityTypes.map((type) => (
             <Link
               key={type.name}
-              href={`/land-property?type=${encodeURIComponent(type.name)}`}
+              href={`/land-activity?type=${encodeURIComponent(type.name)}`}
               className="group relative overflow-hidden rounded-2xl"
             >
               <div className="relative h-[250px] w-full">

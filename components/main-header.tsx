@@ -11,16 +11,22 @@ import ParcelLogoDark from "@/public/images/parcel-dark.png";
 import BuyerProfileSidebar from "./buyer-profile-sidebar";
 import Image from "next/image";
 import Link from "next/link";
+import { useSignInModal } from "@/lib/sign-in-modal-context";
 
 const THEME_KEY = "theme";
 
 export const MainHeader = () => {
   const { data: session, status } = useSession();
+  const { registerOpenSignInModal } = useSignInModal();
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const isSignedIn = status === "authenticated" && !!session;
+
+  useEffect(() => {
+    registerOpenSignInModal(() => setShowSignInModal(true));
+  }, [registerOpenSignInModal]);
 
   useEffect(() => {
     setMounted(true);
