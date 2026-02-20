@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
           .from(landListings)
           .where(arrayContains(landListings.propertyType, [type]))
           .limit(100)
-      : await db.select().from(landListings).limit(6);
+      : await db.select().from(landListings).limit(8);
 
     return NextResponse.json(rows);
   } catch (error) {

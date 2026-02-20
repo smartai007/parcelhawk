@@ -3,7 +3,7 @@ import Link from "next/link"
 
 const landTypes = [
   {
-    name: "Acreage",
+    name: "Undeveloped Land",
     listings: "2,400+",
     image: "/images/acreage.png",
   },
@@ -18,12 +18,12 @@ const landTypes = [
     image: "/images/ranches.png",
   },
   {
-    name: "Investment",
+    name: "Residential Property",
     listings: "600+",
     image: "/images/investment.png",
   },
   {
-    name: "Off-Grid",
+    name: "Commercial Property",
     listings: "450+",
     image: "/images/off-grid.png",
   },

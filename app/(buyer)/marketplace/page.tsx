@@ -64,7 +64,7 @@ function MarketplacePageContent() {
         if (cancelled || !Array.isArray(listing)) return
         const mapped = listing.map((item: any) => ({
           id: item.id,
-          image: item.photos?.[0],
+          images: item.photos,
           category: item.propertyType?.[0],
           categoryColor: "#3b8a6e",
           name: item.title,
@@ -150,7 +150,7 @@ function MarketplacePageContent() {
               {paginatedListings.map((listing: any) => (
                 <PropertyCard
                   key={listing.id}
-                  image={listing.image}
+                  images={listing.images}
                   category={listing.category}
                   categoryColor={listing.categoryColor}
                   name={listing.name}
