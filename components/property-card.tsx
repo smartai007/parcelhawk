@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { useSession } from "next-auth/react"
 import { Heart, MapPin, Maximize2, ChevronLeft, ChevronRight } from "lucide-react"
+import { useSignInModal } from "@/lib/sign-in-modal-context"
 
 interface PropertyCardProps {
   /** Single image (used by featured-list); ignored if images is provided */
@@ -43,6 +45,8 @@ export function PropertyCard({
   location,
   acreage,
 }: PropertyCardProps) {
+  const { data: session } = useSession()
+  const { openSignInModal } = useSignInModal()
   const [isFavorited, setIsFavorited] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const imageList =
@@ -80,7 +84,13 @@ export function PropertyCard({
         </span>
         <button
           type="button"
-          onClick={() => setIsFavorited(!isFavorited)}
+          onClick={() => {
+            if (!session) {
+              openSignInModal()
+              return
+            }
+            setIsFavorited(!isFavorited)
+          }}
           className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-colors hover:bg-background"
           aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
         >
