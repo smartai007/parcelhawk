@@ -27,7 +27,34 @@ const MAX_PRESETS = [
   { label: "No MAX", value: 1000000000 },
 ] as const
 
-export default function PriceRange() {
+function formatPriceShort(value: string): string {
+  const num = Number(String(value).replace(/[^0-9.]/g, ""))
+  if (!Number.isFinite(num) || num <= 0) return ""
+  if (num >= 1_000_000) {
+    const m = num / 1_000_000
+    return m % 1 === 0 ? `${m}M` : `${m.toFixed(1)}M`
+  }
+  if (num >= 1_000) {
+    const k = num / 1_000
+    return k % 1 === 0 ? `${k}K` : `${k.toFixed(1)}K`
+  }
+  return String(num)
+}
+
+function parsePriceToNumber(value: string): number | null {
+  const num = Number(String(value).replace(/[^0-9.]/g, ""))
+  if (!Number.isFinite(num) || num < 0) return null
+  return num
+}
+
+export type PriceRangeOnApply = (min: number | null, max: number | null) => void
+
+interface PriceRangeProps {
+  /** Called when user clicks Apply with current min/max (null = no limit). */
+  onApply?: PriceRangeOnApply
+}
+
+export default function PriceRange({ onApply }: PriceRangeProps) {
   const [open, setOpen] = useState(false)
   const [minPrice, setMinPrice] = useState("")
   const [maxPrice, setMaxPrice] = useState("")
@@ -65,9 +92,11 @@ export default function PriceRange() {
     return target === "min" ? activeMinPreset === i : activeMaxPreset === i
   }
 
+  const minShort = minPrice ? formatPriceShort(minPrice) : ""
+  const maxShort = maxPrice ? formatPriceShort(maxPrice) : ""
   const priceLabel =
-    minPrice || maxPrice
-      ? `${minPrice ? `$${minPrice}` : ""}-${maxPrice ? `$${maxPrice}` : ""}`.replace(/^-|-$/g, "") || "Price"
+    minShort || maxShort
+      ? `${minShort ? `$${minShort}` : ""}-${maxShort ? `$${maxShort}` : ""}`.replace(/^-|-$/g, "") || "Price"
       : "Price"
 
   return (
@@ -183,7 +212,15 @@ export default function PriceRange() {
             </button>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                const minNum = parsePriceToNumber(minPrice)
+                const maxNum = parsePriceToNumber(maxPrice)
+                const min = minNum === null || minNum === 0 ? null : minNum
+                const max =
+                  maxNum === null || maxNum >= 1_000_000_000 ? null : maxNum
+                onApply?.(min, max)
+                setOpen(false)
+              }}
               className="flex-1 rounded-xl bg-[#04C0AF] py-3.5 text-base font-medium text-white shadow-md transition-colors hover:bg-[#3dbdb5] active:bg-[#35aba3]"
             >
               Apply

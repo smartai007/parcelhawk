@@ -21,7 +21,22 @@ const MAX_PRESETS = [
   { label: "No Max", value: 999999 },
 ] as const
 
-export default function SizeRange() {
+const NO_MAX_VALUE = 999999
+
+function parseAcresToNumber(value: string): number | null {
+  const num = Number(String(value).replace(/[^0-9.]/g, ""))
+  if (!Number.isFinite(num) || num < 0) return null
+  return num
+}
+
+export type SizeRangeOnApply = (min: number | null, max: number | null) => void
+
+interface SizeRangeProps {
+  /** Called when user clicks Apply with current min/max acres (null = no limit). */
+  onApply?: SizeRangeOnApply
+}
+
+export default function SizeRange({ onApply }: SizeRangeProps) {
   const [open, setOpen] = useState(false)
   const [minAcres, setMinAcres] = useState("")
   const [maxAcres, setMaxAcres] = useState("")
@@ -178,7 +193,15 @@ export default function SizeRange() {
             </button>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                const minNum = parseAcresToNumber(minAcres)
+                const maxNum = parseAcresToNumber(maxAcres)
+                const min = minNum === null || minNum === 0 ? null : minNum
+                const max =
+                  maxNum === null || maxNum >= NO_MAX_VALUE ? null : maxNum
+                onApply?.(min, max)
+                setOpen(false)
+              }}
               className="flex-1 rounded-xl bg-[#04C0AF] py-3.5 text-base font-medium text-white shadow-md transition-colors hover:bg-[#3dbdb5] active:bg-[#35aba3]"
             >
               Apply
