@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
 import { Heart, MapPin, Maximize2, ChevronLeft, ChevronRight } from "lucide-react"
@@ -18,6 +18,8 @@ interface PropertyCardProps {
   price: string
   location: string
   acreage: string
+  /** When true, heart shows as favorited (e.g. from API isFavorite) */
+  initialIsFavorite?: boolean
 }
 
 function formatPrice(price: string): string {
@@ -46,11 +48,17 @@ export function PropertyCard({
   price,
   location,
   acreage,
+  initialIsFavorite = false,
 }: PropertyCardProps) {
   const { data: session } = useSession()
   const { openSignInModal } = useSignInModal()
-  const [isFavorited, setIsFavorited] = useState(false)
+  const [isFavorited, setIsFavorited] = useState(initialIsFavorite)
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  useEffect(() => {
+    setIsFavorited(initialIsFavorite)
+  }, [initialIsFavorite])
+
   const imageList =
     Array.isArray(images) && images.length > 0
       ? images
@@ -74,7 +82,7 @@ export function PropertyCard({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ landListingIds: [listingId] }),
     })
-    if (res.ok) setIsFavorited(true)
+    if (res.ok) setIsFavorited((prev) => !prev)
   }
 
   return (

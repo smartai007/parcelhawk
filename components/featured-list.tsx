@@ -6,42 +6,10 @@ import { PropertyCard } from "./property-card"
 
 // TODO: Remove this once the API is implemented
 const listings = [
-  {
-    image: "/images/property-1.png",
-    category: "Recreational",
-    categoryColor: "#3b8a6e",
-    name: "Whispering Pines Estate",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-  },
-  {
-    image: "/images/property-2.png",
-    category: "Acreage",
-    categoryColor: "#5a7d5a",
-    name: "Whispering Pines Estate",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-  },
-  {
-    image: "/images/property-3.png",
-    category: "Investment",
-    categoryColor: "#c77c32",
-    name: "Whispering Pines Estate",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-  },
-  {
-    image: "/images/property-4.png",
-    category: "Farm",
-    categoryColor: "#6b7b6b",
-    name: "Whispering Pines Estate",
-    price: "$450,000",
-    location: "Asheville, NC",
-    acreage: "12.5 Acres",
-  },
+  { id: 1, images: ["/images/property-1.png"], category: "Recreational", categoryColor: "#3b8a6e", name: "Whispering Pines Estate", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres" },
+  { id: 2, images: ["/images/property-2.png"], category: "Acreage", categoryColor: "#5a7d5a", name: "Whispering Pines Estate", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres" },
+  { id: 3, images: ["/images/property-3.png"], category: "Investment", categoryColor: "#c77c32", name: "Whispering Pines Estate", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres" },
+  { id: 4, images: ["/images/property-4.png"], category: "Farm", categoryColor: "#6b7b6b", name: "Whispering Pines Estate", price: "$450,000", location: "Asheville, NC", acreage: "12.5 Acres" },
 ]
 
 function getBaseUrl() {
@@ -68,13 +36,14 @@ export function FeaturedListings() {
         if (cancelled || !Array.isArray(raw)) return;
         const mapped = raw.map((listing: any) => ({
           id: listing.id,
-          image: listing.photos?.[0],
+          images: listing.photos ?? [],
           category: listing.propertyType?.[0],
           categoryColor: "#3b8a6e",
           name: listing.title,
           price: listing.price,
           location: listing.city,
           acreage: listing.acres,
+          isFavorite: !!listing.isFavorite,
         }));
         setListingsData(mapped);
       } catch {
@@ -102,8 +71,19 @@ export function FeaturedListings() {
       </div>
 
       <div className="mt-12 grid grid-cols-1 font-ibm-plex-sans gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {listingsData.map((listing: any, index: number) => (
-          <PropertyCard key={index} id={listing.id as number} {...listing} />
+        {listingsData.map((listing: any) => (
+          <PropertyCard
+            key={listing.id}
+            id={listing.id as number}
+            images={listing.images}
+            category={listing.category ?? ""}
+            categoryColor={listing.categoryColor ?? "#6b7b6b"}
+            name={listing.name}
+            price={listing.price}
+            location={listing.location}
+            acreage={listing.acreage}
+            initialIsFavorite={listing.isFavorite}
+          />
         ))}
       </div>
 

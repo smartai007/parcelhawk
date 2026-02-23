@@ -18,6 +18,8 @@ export interface ListingItem {
   acreage: string
   latitude?: number | null
   longitude?: number | null
+  /** When true, card heart shows as favorited (from API when user is signed in) */
+  isFavorite?: boolean
 }
 
 interface PropertyMapListProps {
@@ -39,14 +41,16 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
   }, [listings.length])
 
   return (
-    <div className="flex min-h-0 flex-1 overflow-hidden">
-      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
-        <MarketplaceMap
-          listings={listings}
-          className="h-full w-full rounded-r-lg"
-        />
+    <div className="flex w-full">
+      <div className="sticky top-[73px] h-[calc(100vh-73px)] min-w-0 w-1/2 shrink-0">
+        <div className="relative h-full w-full">
+          <MarketplaceMap
+            listings={listings}
+            className="h-full w-full rounded-r-lg"
+          />
+        </div>
       </div>
-      <div className="flex min-h-0 w-1/2 shrink-0 flex-col overflow-hidden border-l border-border bg-background">
+      <div className="flex w-1/2 shrink-0 flex-col border-l border-border bg-background">
         <div className="shrink-0 border-b border-border px-5 pb-4 pt-5">
           <div className="flex items-start justify-between">
             <div>
@@ -65,7 +69,7 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="px-5 py-4">
           <div className="grid grid-cols-2 gap-4">
             {paginatedListings.map((listing) => (
               <PropertyCard
@@ -78,6 +82,7 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
                 price={listing.price}
                 location={listing.location}
                 acreage={listing.acreage}
+                initialIsFavorite={listing.isFavorite}
               />
             ))}
           </div>

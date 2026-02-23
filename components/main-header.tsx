@@ -24,6 +24,12 @@ export const MainHeader = () => {
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const isSignedIn = status === "authenticated" && !!session;
 
+  const user = session?.user as { firstName?: string; lastName?: string; name?: string } | undefined;
+  const profileLabel =
+    user?.firstName?.trim() && user?.lastName?.trim()
+      ? `${user.firstName.trim()[0]}${user.lastName.trim()[0]}`.toUpperCase()
+      : (user?.name ?? "Account");
+
   useEffect(() => {
     registerOpenSignInModal(() => setShowSignInModal(true));
   }, [registerOpenSignInModal]);
@@ -108,7 +114,7 @@ export const MainHeader = () => {
                   ? "border-white/50 text-white hover:bg-white/20 hover:border-white"
                   : "border-neutral-300 text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400"
               }`}
-              userName={session?.user?.name ?? "Account"}
+              userName={profileLabel}
             />
           ) : (
             <div
