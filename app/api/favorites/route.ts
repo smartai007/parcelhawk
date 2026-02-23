@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import type { Session } from "next-auth";
 import { db } from "@/db";
 import { favorites, landListings } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { authOptions } from "@/lib/auth";
 
 function getUserId(session: Session | null): string | null {
@@ -87,22 +87,46 @@ export async function POST(request: Request) {
   }
 
   try {
-    await db
-      .insert(favorites)
-      .values(
-        landListingIds.map((landListingId) => ({
-          userId,
-          landListingId,
-        }))
-      )
-      .onConflictDoNothing({
-        target: [favorites.userId, favorites.landListingId],
-      });
+    const existing = await db
+      .select({ landListingId: favorites.landListingId })
+      .from(favorites)
+      .where(
+        and(
+          eq(favorites.userId, userId),
+          inArray(favorites.landListingId, landListingIds)
+        )
+      );
+    const existingIds = new Set(existing.map((r) => r.landListingId));
+
+    const toRemove = landListingIds.filter((id) => existingIds.has(id));
+    const toAdd = landListingIds.filter((id) => !existingIds.has(id));
+
+    for (const landListingId of toRemove) {
+      await db
+        .delete(favorites)
+        .where(
+          and(
+            eq(favorites.userId, userId),
+            eq(favorites.landListingId, landListingId)
+          )
+        );
+    }
+    if (toAdd.length > 0) {
+      await db
+        .insert(favorites)
+        .values(
+          toAdd.map((landListingId) => ({ userId, landListingId }))
+        )
+        .onConflictDoNothing({
+          target: [favorites.userId, favorites.landListingId],
+        });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("Favorites insert error:", err);
+    console.error("Favorites toggle error:", err);
     return NextResponse.json(
-      { error: "Failed to save favorites" },
+      { error: "Failed to update favorites" },
       { status: 500 }
     );
   }

@@ -82,7 +82,7 @@ export function PropertyCard({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ landListingIds: [listingId] }),
     })
-    if (res.ok) setIsFavorited(true)
+    if (res.ok) setIsFavorited((prev) => !prev)
   }
 
   return (
