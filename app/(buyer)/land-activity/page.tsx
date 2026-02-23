@@ -68,6 +68,7 @@ function LandActivityPageContent() {
           acreage: item.acres,
           latitude: item.latitude != null ? Number(item.latitude) : null,
           longitude: item.longitude != null ? Number(item.longitude) : null,
+          isFavorite: !!item.isFavorite,
         }))
         setListingsData(mapped)
       } catch {

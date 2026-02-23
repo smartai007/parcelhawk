@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { and, arrayContains, gte, lte } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import { and, arrayContains, desc, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
-import { landListings } from "@/db/schema";
+import { favorites, landListings } from "@/db/schema";
+import { authOptions } from "@/lib/auth";
 
 function parseNumParam(value: string | null): number | null {
   if (value == null || value.trim() === "") return null;
@@ -40,10 +42,27 @@ export async function GET(request: NextRequest) {
             .select()
             .from(landListings)
             .where(and(...conditions))
+            .orderBy(desc(landListings.id))
             .limit(100)
-        : await db.select().from(landListings).limit(100);
+        : await db.select().from(landListings).orderBy(desc(landListings.id)).limit(100);
 
-    return NextResponse.json(rows);
+    const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+    let favoriteIds = new Set<number>();
+    if (userId) {
+      const favRows = await db
+        .select({ landListingId: favorites.landListingId })
+        .from(favorites)
+        .where(eq(favorites.userId, userId));
+      favoriteIds = new Set(favRows.map((r) => r.landListingId));
+    }
+
+    const list = rows.map((row) => ({
+      ...row,
+      isFavorite: favoriteIds.has(row.id),
+    }));
+
+    return NextResponse.json(list);
   } catch (error) {
     console.error("Land Activity API error:", error);
     return NextResponse.json(

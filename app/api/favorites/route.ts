@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import type { Session } from "next-auth";
 import { db } from "@/db";
 import { favorites, landListings } from "@/db/schema";
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { authOptions } from "@/lib/auth";
 
 function getUserId(session: Session | null): string | null {
@@ -33,7 +33,7 @@ export async function GET() {
       .from(favorites)
       .innerJoin(landListings, eq(favorites.landListingId, landListings.id))
       .where(eq(favorites.userId, userId))
-      .orderBy(desc(favorites.createdAt));
+      .orderBy(desc(landListings.id));
 
     const listings = rows.map((row) => ({
       id: row.id,
@@ -46,6 +46,7 @@ export async function GET() {
       acreage: row.acres != null ? String(row.acres) : "",
       latitude: row.latitude != null ? Number(row.latitude) : null,
       longitude: row.longitude != null ? Number(row.longitude) : null,
+      isFavorite: true,
     }));
 
     return NextResponse.json(listings);

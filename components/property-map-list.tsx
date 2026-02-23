@@ -18,6 +18,8 @@ export interface ListingItem {
   acreage: string
   latitude?: number | null
   longitude?: number | null
+  /** When true, card heart shows as favorited (from API when user is signed in) */
+  isFavorite?: boolean
 }
 
 interface PropertyMapListProps {
@@ -80,6 +82,7 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
                 price={listing.price}
                 location={listing.location}
                 acreage={listing.acreage}
+                initialIsFavorite={listing.isFavorite}
               />
             ))}
           </div>
