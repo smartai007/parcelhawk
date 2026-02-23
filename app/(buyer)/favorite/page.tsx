@@ -56,25 +56,26 @@ function FavoritePageContent() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-73px)] w-full flex-col overflow-hidden font-ibm-plex-sans">
-      {/* Search & Filters - top bar (same as land-property) */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-3">
-        <div className="flex min-w-0 max-w-1/2 flex-1 items-center gap-3">
-          <div className="relative min-w-0 flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search by location"
-              className="h-10 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+    <div className="flex min-h-[calc(100vh-73px)] w-full flex-col font-ibm-plex-sans">
+      <div className="sticky top-[73px] z-10 shrink-0 border-b border-border bg-background">
+        <div className="flex items-center justify-between gap-3 px-4 py-3">
+          <div className="flex min-w-0 max-w-1/2 flex-1 items-center gap-3">
+            <div className="relative min-w-0 flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search by location"
+                className="h-10 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <PriceRange />
+            <SizeRange />
+            <FilterOption />
           </div>
-          <PriceRange />
-          <SizeRange />
-          <FilterOption />
+          <span className="shrink-0 text-sm font-medium text-foreground">
+            Favorites
+          </span>
         </div>
-        <span className="shrink-0 text-sm font-medium text-foreground">
-          Favorites
-        </span>
       </div>
 
       <PropertyMapList listings={listingsData} title="Favorites" />

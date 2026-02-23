@@ -79,12 +79,14 @@ function LandActivityPageContent() {
   }, [typeFromUrl, priceRange.min, priceRange.max, sizeRange.min, sizeRange.max])
 
   return (
-    <div className="flex h-[calc(100vh-73px)] w-full flex-col overflow-hidden font-ibm-plex-sans">
-      <SearchFiltersBar
-        listingIds={listingsData.map((l) => l.id)}
-        onPriceRangeApply={(min, max) => setPriceRange({ min, max })}
-        onSizeRangeApply={(min, max) => setSizeRange({ min, max })}
-      />
+    <div className="flex min-h-[calc(100vh-73px)] w-full flex-col font-ibm-plex-sans">
+      <div className="sticky top-[73px] z-10 shrink-0 border-b border-border bg-background">
+        <SearchFiltersBar
+          listingIds={listingsData.map((l) => l.id)}
+          onPriceRangeApply={(min, max) => setPriceRange({ min, max })}
+          onSizeRangeApply={(min, max) => setSizeRange({ min, max })}
+        />
+      </div>
       <PropertyMapList listings={listingsData} title="Acreage" />
     </div>
   )
