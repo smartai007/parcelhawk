@@ -70,6 +70,7 @@ function LandActivityPageContent() {
           longitude: item.longitude != null ? Number(item.longitude) : null,
           isFavorite: !!item.isFavorite,
           url: item.url,
+          description: item.description,
         }))
         setListingsData(mapped)
       } catch {

@@ -18,6 +18,8 @@ interface PropertyCardProps {
   price: string
   location: string
   acreage: string
+  /** Description from landListings.description (array joined as paragraph); optional */
+  description?: string | string[] | null
   /** When true, heart shows as favorited (e.g. from API isFavorite) */
   initialIsFavorite?: boolean
   /** URL to open when image is clicked (new tab). Use landListings.url when available; defaults to /property?id={id} */
@@ -50,6 +52,7 @@ export function PropertyCard({
   price,
   location,
   acreage,
+  description,
   initialIsFavorite = false,
   detailUrl,
 }: PropertyCardProps) {
@@ -67,6 +70,13 @@ export function PropertyCard({
       : image ?? ""
 
   const linkUrl = detailUrl ?? `/property?id=${id}`
+
+  const descriptionText =
+    description == null
+      ? ""
+      : Array.isArray(description)
+        ? description.filter(Boolean).join(" ").trim()
+        : String(description).trim()
 
   const saveFavorite = async (listingId: number) => {
     const res = await fetch("/api/favorites", {
@@ -126,6 +136,12 @@ export function PropertyCard({
         <h3 className="text-sm font-medium text-[#030303]">{name}</h3>
         <span className="text-sm font-semibold text-foreground">{formatPrice(price)}</span>
       </div>
+
+      {descriptionText ? (
+        <p className="pt-1.5 text-xs text-muted-foreground line-clamp-3">
+          {descriptionText}
+        </p>
+      ) : null}
 
       <div className="flex items-center gap-3 pt-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
