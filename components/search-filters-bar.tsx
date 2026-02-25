@@ -10,6 +10,7 @@ import type { PriceRangeOnApply } from "@/components/price-range"
 import SizeRange from "@/components/size-range"
 import type { SizeRangeOnApply } from "@/components/size-range"
 import FilterOption from "@/components/filter-option"
+import { SavePropertySearchModal } from "@/components/save-search-property-modal"
 import { useSignInModal } from "@/lib/sign-in-modal-context"
 
 interface SearchFiltersBarProps {
@@ -28,8 +29,7 @@ export function SearchFiltersBar({
 }: SearchFiltersBarProps) {
   const { data: session } = useSession()
   const { openSignInModal } = useSignInModal()
-  const [savedSearch, setSavedSearch] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [saveModalOpen, setSaveModalOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -66,39 +66,23 @@ export function SearchFiltersBar({
       </div>
       <button
         type="button"
-        disabled={saving || listingIds.length === 0}
-        onClick={async () => {
-          if (savedSearch) {
-            setSavedSearch(false)
-            return
-          }
+        onClick={() => {
           if (!session) {
             openSignInModal()
             return
           }
-          setSaving(true)
-          try {
-            const res = await fetch("/api/favorites", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ landListingIds: listingIds }),
-            })
-            if (res.ok) setSavedSearch(true)
-          } finally {
-            setSaving(false)
-          }
+          setSaveModalOpen(true)
         }}
-        className={`shrink-0 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 ${
-          savedSearch
-            ? "border border-[#04C0AF] bg-[#04C0AF]/10 text-[#04C0AF] hover:bg-[#04C0AF]/20"
-            : "bg-[#04C0AF] text-white hover:bg-[#3dbdb5]"
-        }`}
+        className="shrink-0 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors bg-[#04C0AF] text-white hover:bg-[#3dbdb5] disabled:opacity-50"
       >
-        <Heart
-          className={`h-4 w-4 ${savedSearch ? "fill-[#04C0AF]" : "fill-white"}`}
-        />
-        {saving ? "Saving…" : savedSearch ? "Saved" : "Save Search"}
+        <Heart className="h-4 w-4 fill-white" />
+        Save Search
       </button>
+      <SavePropertySearchModal
+        isOpen={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        onSave={() => setSaveModalOpen(false)}
+      />
     </div>
   )
 }
