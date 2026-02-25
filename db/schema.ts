@@ -114,3 +114,24 @@ export const favorites = pgTable(
     ),
   ]
 );
+
+export const savedSearches = pgTable("saved_searches", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  frequency: text("frequency").notNull(),
+  // Search criteria (nullable = not set in saved search)
+  minPrice: numeric("min_price"),
+  maxPrice: numeric("max_price"),
+  minAcres: numeric("min_acres"),
+  maxAcres: numeric("max_acres"),
+  location: text("location"),
+  prompt: text("prompt"),
+  propertyType: text("property_type"),
+  landType: text("land_type"),
+  activities: text("activities").array(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});

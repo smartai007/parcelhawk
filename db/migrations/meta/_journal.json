@@ -29,6 +29,13 @@
       "when": 1772007301023,
       "tag": "0003_complete_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772052012937,
+      "tag": "0004_classy_maggott",
+      "breakpoints": true
     }
   ]
 }
