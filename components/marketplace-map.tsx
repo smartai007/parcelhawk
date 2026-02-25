@@ -41,8 +41,11 @@ export function MarketplaceMap({
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
   const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-marketplace",
+    id: "google-map-script",
     googleMapsApiKey: apiKey ?? "",
+    libraries: ["maps", "places"],
+    language: "en",
+    preventGoogleFontsLoading: true,
   })
 
   const markersWithCoords = useMemo(

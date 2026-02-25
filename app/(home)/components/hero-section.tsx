@@ -1,11 +1,29 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Search, ChevronDown } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Search, ChevronDown, Check } from "lucide-react"
+import { LocationSearchInput } from "@/components/location-search-input"
 import HeroBg from "@/public/images/hero-bg.png"
 
-const MIN_ACRES_OPTIONS = ["No Min", "1", "5", "10", "20", "50", "100", "200", "500"]
-const MAX_ACRES_OPTIONS = ["No Max", "5", "10", "20", "50", "100", "200", "500", "1000+"]
+const MIN_ACRES_OPTIONS = ["Any Min Acres", "0.5+ acres", "1+ acres", "20+ acres", "40+ acres", "50+ acres", "80+ acres", "100+ acres"]
+const MAX_PRICE_OPTIONS = ["No Max Price", "$5K", "$10K", "$20K", "$50K", "$100K", "$200K", "$500K", "$1M+"]
+
+function parseMinAcresFromLabel(label: string): number | null {
+  if (!label || label === "Any Min Acres" || label === "Any size") return null
+  const match = label.match(/^([\d.]+)\+\s*acres?$/i)
+  return match ? Number(match[1]) : null
+}
+
+function parseMaxPriceFromLabel(label: string): number | null {
+  if (!label || label === "No Max Price") return null
+  const match = label.match(/\$(\d+(?:\.\d+)?)(K|M)?\+?$/i)
+  if (!match) return null
+  let n = Number(match[1])
+  if (match[2] === "K") n *= 1000
+  else if (match[2] === "M") n *= 1_000_000
+  return Number.isFinite(n) ? n : null
+}
 
 type AcresDropdownProps = {
   label: string
@@ -31,11 +49,11 @@ function AcresDropdown({ label, options, value, onChange, className }: AcresDrop
   const triggerClass =
     "flex w-full min-w-0 items-center justify-between gap-2 rounded-md bg-white/10 px-4 py-3 text-sm text-neutral-200 backdrop-blur-md transition-colors hover:bg-white/15 focus:outline-none"
   const listClass =
-    "absolute left-0 top-full z-50 mt-1 min-w-28 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 bg-white/10 py-1 shadow-lg backdrop-blur-md"
-  const itemClass = "w-full px-4 py-2 text-left text-sm text-neutral-200 transition-colors hover:bg-white/15"
+    "absolute left-0 top-full z-50 mt-1 min-w-[140px] max-h-56 w-full overflow-y-auto rounded-b-md bg-white py-1 shadow-lg"
+  const isSelected = (opt: string) => (value || label) === opt || (!value && opt === options[0])
 
   return (
-    <div ref={ref} className={`relative w-32 shrink-0 ${className ?? ""}`.trim()}>
+    <div ref={ref} className={`relative w-36 shrink-0 ${className ?? ""}`.trim()}>
       <button type="button" onClick={() => setOpen((o) => !o)} className={triggerClass}>
         <span className="min-w-0 truncate">{value || label}</span>
         <ChevronDown className="h-4 w-4 shrink-0 text-[#FFFFFF]" />
@@ -44,8 +62,17 @@ function AcresDropdown({ label, options, value, onChange, className }: AcresDrop
         <ul className={listClass}>
           {options.map((opt) => (
             <li key={opt}>
-              <button type="button" onClick={() => { onChange(opt); setOpen(false) }} className={itemClass}>
-                {opt}
+              <button
+                type="button"
+                onClick={() => { onChange(opt); setOpen(false) }}
+                className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm transition-colors hover:bg-neutral-50 ${
+                  isSelected(opt)
+                    ? "text-[#04C0AF] font-medium"
+                    : "text-neutral-800"
+                }`}
+              >
+                <span>{opt}</span>
+                {isSelected(opt) && <Check className="h-4 w-4 shrink-0 text-[#04C0AF]" />}
               </button>
             </li>
           ))}
@@ -56,9 +83,22 @@ function AcresDropdown({ label, options, value, onChange, className }: AcresDrop
 }
 
 export default function HeroSection() {
-  const [minAcres, setMinAcres] = useState("")
-  const [maxAcres, setMaxAcres] = useState("")
+  const router = useRouter()
+  const [minAcres, setMinAcres] = useState("Any Min Acres")
+  const [maxPrice, setMaxPrice] = useState("No Max Price")
   const [searchQuery, setSearchQuery] = useState("")
+
+  const handleSearch = () => {
+    const params = new URLSearchParams()
+    const location = searchQuery.trim()
+    const minAcresNum = parseMinAcresFromLabel(minAcres)
+    const maxPriceNum = parseMaxPriceFromLabel(maxPrice)
+    if (location) params.set("location", location)
+    if (minAcresNum != null) params.set("minAcres", String(minAcresNum))
+    if (maxPriceNum != null) params.set("maxPrice", String(maxPriceNum))
+    const qs = params.toString()
+    router.push(`/land-property${qs ? `?${qs}` : ""}`)
+  }
 
   return (
     <section className="relative flex min-h-[calc(500px)] -mt-[80px] flex-col items-center justify-center bg-neutral-900 px-4 bg-cover bg-center" style={{ backgroundImage: `url(${HeroBg.src})` }}>
@@ -85,24 +125,24 @@ export default function HeroSection() {
             onChange={setMinAcres}
           />
           <AcresDropdown
-            label="Max Acres"
-            options={MAX_ACRES_OPTIONS}
-            value={maxAcres}
-            onChange={setMaxAcres}
+            label="Max Price"
+            options={MAX_PRICE_OPTIONS}
+            value={maxPrice}
+            onChange={setMaxPrice}
           />
-          <input
-            type="text"
+          <LocationSearchInput
             placeholder="Search by Location or keyword"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 rounded-md bg-white/10 px-5 py-3 text-sm text-neutral-200 placeholder-white backdrop-blur-md outline-none transition-colors focus:bg-white/15"
+            onChange={setSearchQuery}
+            className="w-full rounded-md border-0 border-b-2 border-transparent bg-white/10 px-5 py-3 text-sm text-neutral-200 placeholder-white/80 backdrop-blur-md outline-none transition-colors hover:bg-white/15 focus:bg-white/15 focus:ring-0"
           />
           <button
             type="button"
-            className="flex justify-between gap-2 items-center rounded-md bg-[#04C0AF] px-4 py-2.5 text-sm font-medium text-white backdrop-blur-md transition-colors hover:bg-[#3dba8f] cursor-pointer"
+            onClick={handleSearch}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#04C0AF] text-white transition-colors hover:bg-[#059a8f] cursor-pointer"
+            aria-label="Search"
           >
-            <Search className="h-4 w-4" />
-            <span>Search</span>
+            <Search className="h-5 w-5" />
           </button>
         </div>
 

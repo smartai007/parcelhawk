@@ -1,8 +1,10 @@
 "use client"
 
 import { Search, Heart } from "lucide-react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { LocationSearchInput } from "@/components/location-search-input"
 import PriceRange from "@/components/price-range"
 import type { PriceRangeOnApply } from "@/components/price-range"
 import SizeRange from "@/components/size-range"
@@ -28,14 +30,32 @@ export function SearchFiltersBar({
   const { openSignInModal } = useSignInModal()
   const [savedSearch, setSavedSearch] = useState(false)
   const [saving, setSaving] = useState(false)
+  const pathname = usePathname()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const locationFromUrl = searchParams.get("location") ?? ""
+  const [locationDraft, setLocationDraft] = useState(locationFromUrl)
+
+  useEffect(() => {
+    setLocationDraft(locationFromUrl)
+  }, [locationFromUrl])
+
+  const handleLocationSelect = (selected: string) => {
+    const next = new URLSearchParams(searchParams.toString())
+    if (selected.trim()) next.set("location", selected.trim())
+    else next.delete("location")
+    router.push(`${pathname}?${next.toString()}`)
+  }
 
   return (
     <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-3">
       <div className="flex min-w-0 max-w-1/2 flex-1 items-center gap-3">
-        <div className="relative min-w-0 flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
+        <div className="relative flex min-w-0 flex-1 items-center">
+          <Search className="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <LocationSearchInput
+            value={locationDraft}
+            onChange={setLocationDraft}
+            onSelect={handleLocationSelect}
             placeholder="Search by location"
             className="h-10 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
