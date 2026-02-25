@@ -2,6 +2,7 @@ import {
   bigserial,
   date,
   doublePrecision,
+  index,
   integer,
   jsonb,
   numeric,
@@ -11,6 +12,7 @@ import {
   uniqueIndex,
   uuid,
   varchar,
+  vector,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -69,6 +71,26 @@ export const landListings = pgTable("land_listings", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/** Embeddings for land listing descriptions (Vertex AI; 768 dimensions for text-embedding-005 / text-multilingual-embedding-002). */
+export const landListingEmbeddings = pgTable(
+  "land_listing_embeddings",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    listingId: integer("listing_id")
+      .notNull()
+      .references(() => landListings.id, { onDelete: "cascade" })
+      .unique(),
+    embedding: vector("embedding", { dimensions: 768 }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("land_listing_embeddings_embedding_idx").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops")
+    ),
+  ]
+);
 
 export const favorites = pgTable(
   "favorites",
