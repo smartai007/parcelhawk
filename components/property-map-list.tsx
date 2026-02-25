@@ -20,6 +20,10 @@ export interface ListingItem {
   longitude?: number | null
   /** When true, card heart shows as favorited (from API when user is signed in) */
   isFavorite?: boolean
+  /** Listing URL from landListings.url; used for "view listing" link (opens in new tab) */
+  url?: string | null
+  /** Description from landListings.description (array of strings) */
+  description?: string[] | string | null
 }
 
 interface PropertyMapListProps {
@@ -83,6 +87,8 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
                 location={listing.location}
                 acreage={listing.acreage}
                 initialIsFavorite={listing.isFavorite}
+                detailUrl={listing.url ?? undefined}
+                description={listing.description}
               />
             ))}
           </div>

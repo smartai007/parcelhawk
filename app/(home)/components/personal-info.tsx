@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { toast } from "sonner"
 import Image from "next/image"
 
 export default function PersonalInfo() {
@@ -9,12 +10,33 @@ export default function PersonalInfo() {
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
 
+  const [phone, setPhone] = useState("")
+  const [location, setLocation] = useState("")
+
   useEffect(() => {
     if (session?.user?.name) setFullName(session.user.name)
     if (session?.user?.email) setEmail(session.user.email ?? "")
-  }, [session?.user?.name, session?.user?.email])
-  const [phone, setPhone] = useState("+1 (555) 012-3456")
-  const [location, setLocation] = useState("Austin, Texas")
+    if (session?.user?.phone != null) setPhone(session.user.phone ?? "")
+    if (session?.user?.location != null) setLocation(session.user.location ?? "")
+  }, [session?.user?.name, session?.user?.email, session?.user?.phone, session?.user?.location])
+
+  const handleSaveChanges = async () => {
+    try {
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, email, phone, location }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (response.ok) {
+        toast.success("Profile updated successfully")
+      } else {
+        toast.error((data as { error?: string }).error ?? "Failed to update profile")
+      }
+    } catch {
+      toast.error("Connection failed. Please try again.")
+    }
+  }
 
   return (
     <section id="personal-information" className="rounded-lg border border-border bg-card p-6">
@@ -103,6 +125,7 @@ export default function PersonalInfo() {
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            placeholder="Enter your phone number"
             className="rounded-md border border-border bg-card px-3 py-2 text-sm text-card-foreground outline-none transition-colors focus:border-[#5cbcb6] focus:ring-1 focus:ring-[#5cbcb6]"
           />
         </div>
@@ -117,6 +140,7 @@ export default function PersonalInfo() {
             type="text"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+            placeholder="Enter your location"
             className="rounded-md border border-border bg-card px-3 py-2 text-sm text-card-foreground outline-none transition-colors focus:border-[#5cbcb6] focus:ring-1 focus:ring-[#5cbcb6]"
           />
         </div>
@@ -132,6 +156,7 @@ export default function PersonalInfo() {
         </button>
         <button
           type="button"
+          onClick={handleSaveChanges}
           className="rounded-md bg-[#5cbcb6] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#4da8a2]"
         >
           Save Changes

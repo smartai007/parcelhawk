@@ -44,6 +44,8 @@ export function FeaturedListings() {
           location: listing.city,
           acreage: listing.acres,
           isFavorite: !!listing.isFavorite,
+          url: listing.url,
+          description: listing.description,
         }));
         setListingsData(mapped);
       } catch {
@@ -83,6 +85,8 @@ export function FeaturedListings() {
             location={listing.location}
             acreage={listing.acreage}
             initialIsFavorite={listing.isFavorite}
+            detailUrl={listing.url ?? undefined}
+            description={listing.description}
           />
         ))}
       </div>

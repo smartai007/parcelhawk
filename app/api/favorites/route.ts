@@ -29,6 +29,8 @@ export async function GET() {
         longitude: landListings.longitude,
         photos: landListings.photos,
         propertyType: landListings.propertyType,
+        url: landListings.url,
+        description: landListings.description,
       })
       .from(favorites)
       .innerJoin(landListings, eq(favorites.landListingId, landListings.id))
@@ -47,6 +49,8 @@ export async function GET() {
       latitude: row.latitude != null ? Number(row.latitude) : null,
       longitude: row.longitude != null ? Number(row.longitude) : null,
       isFavorite: true,
+      url: row.url ?? undefined,
+      description: row.description ?? undefined,
     }));
 
     return NextResponse.json(listings);

@@ -1,12 +1,33 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 
 export default function Security() {
-  const [currentPassword, setCurrentPassword] = useState("password")
-  const [newPassword, setNewPassword] = useState("password")
-  const [confirmPassword, setConfirmPassword] = useState("password")
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
+  const handleUpdatePassword = async () => {
+    try {
+      const response = await fetch("/api/security", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (response.ok) {
+        setCurrentPassword("")
+        setNewPassword("")
+        setConfirmPassword("")
+        toast.success("Password updated successfully")
+      } else {
+        toast.error(data.error ?? "Failed to update password")
+      }
+    } catch {
+      toast.error("Connection failed. Please try again.")
+    }
+  }
   return (
     <>
       {/* Security Section */}
@@ -26,6 +47,7 @@ export default function Security() {
               id="currentPassword"
               type="password"
               value={currentPassword}
+              placeholder="Enter your current password"
               onChange={(e) => setCurrentPassword(e.target.value)}
               className="rounded-md border border-border bg-card px-3 py-2 text-sm text-card-foreground outline-none transition-colors focus:border-[#5cbcb6] focus:ring-1 focus:ring-[#5cbcb6]"
             />
@@ -40,6 +62,7 @@ export default function Security() {
               id="newPassword"
               type="password"
               value={newPassword}
+              placeholder="Enter your new password"
               onChange={(e) => setNewPassword(e.target.value)}
               className="rounded-md border border-border bg-card px-3 py-2 text-sm text-card-foreground outline-none transition-colors focus:border-[#5cbcb6] focus:ring-1 focus:ring-[#5cbcb6]"
             />
@@ -54,6 +77,7 @@ export default function Security() {
               id="confirmPassword"
               type="password"
               value={confirmPassword}
+              placeholder="Confirm your new password"
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="rounded-md border border-border bg-card px-3 py-2 text-sm text-card-foreground outline-none transition-colors focus:border-[#5cbcb6] focus:ring-1 focus:ring-[#5cbcb6]"
             />
@@ -63,6 +87,7 @@ export default function Security() {
         <div className="mt-5 flex justify-end">
           <button
             type="button"
+            onClick={handleUpdatePassword}
             className="rounded-md border border-border px-4 py-2 text-sm font-medium text-card-foreground transition-colors hover:bg-accent"
           >
             Update Password

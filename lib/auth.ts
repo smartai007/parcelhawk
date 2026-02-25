@@ -33,6 +33,8 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           firstName: user.firstName,
           lastName: user.lastName,
+          phone: user.phone ?? null,
+          location: user.location ?? null,
         };
       },
     }),
@@ -44,6 +46,8 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as { role?: string }).role;
         token.firstName = (user as { firstName?: string }).firstName;
         token.lastName = (user as { lastName?: string }).lastName;
+        token.phone = (user as { phone?: string | null }).phone ?? null;
+        token.location = (user as { location?: string | null }).location ?? null;
       }
       return token;
     },
@@ -53,6 +57,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as { role?: string }).role = token.role as string;
         (session.user as { firstName?: string }).firstName = token.firstName as string;
         (session.user as { lastName?: string }).lastName = token.lastName as string;
+        (session.user as { phone?: string | null }).phone = token.phone ?? null;
+        (session.user as { location?: string | null }).location = token.location ?? null;
       }
       return session;
     },

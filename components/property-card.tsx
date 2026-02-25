@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
-import { Heart, MapPin, Maximize2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Heart, MapPin, Maximize2 } from "lucide-react"
 import { useSignInModal } from "@/lib/sign-in-modal-context"
 
 interface PropertyCardProps {
@@ -18,8 +18,12 @@ interface PropertyCardProps {
   price: string
   location: string
   acreage: string
+  /** Description from landListings.description (array joined as paragraph); optional */
+  description?: string | string[] | null
   /** When true, heart shows as favorited (e.g. from API isFavorite) */
   initialIsFavorite?: boolean
+  /** URL to open when image is clicked (new tab). Use landListings.url when available; defaults to /property?id={id} */
+  detailUrl?: string
 }
 
 function formatPrice(price: string): string {
@@ -48,33 +52,31 @@ export function PropertyCard({
   price,
   location,
   acreage,
+  description,
   initialIsFavorite = false,
+  detailUrl,
 }: PropertyCardProps) {
   const { data: session } = useSession()
   const { openSignInModal } = useSignInModal()
   const [isFavorited, setIsFavorited] = useState(initialIsFavorite)
-  const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
     setIsFavorited(initialIsFavorite)
   }, [initialIsFavorite])
 
-  const imageList =
+  const firstImage =
     Array.isArray(images) && images.length > 0
-      ? images
-      : image
-        ? [image]
-        : [""]
-  const hasMultiple = imageList.length > 1
+      ? images[0]
+      : image ?? ""
 
-  const goPrev = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentIndex((i) => (i - 1 + imageList.length) % imageList.length)
-  }
-  const goNext = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentIndex((i) => (i + 1) % imageList.length)
-  }
+  const linkUrl = detailUrl ?? `/property?id=${id}`
+
+  const descriptionText =
+    description == null
+      ? ""
+      : Array.isArray(description)
+        ? description.filter(Boolean).join(" ").trim()
+        : String(description).trim()
 
   const saveFavorite = async (listingId: number) => {
     const res = await fetch("/api/favorites", {
@@ -87,10 +89,15 @@ export function PropertyCard({
 
   return (
     <div className="group flex flex-col font-ibm-plex-sans p-4 rounded-xl bg-[#F3F3F5]">
-      <div className="group/img relative aspect-4/3 overflow-hidden rounded-xl">
+      <a
+        href={linkUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group/img relative block aspect-4/3 overflow-hidden rounded-xl"
+      >
         <Image
-          src={getImageSrc(imageList[currentIndex] ?? "")}
-          alt={`${name} – image ${currentIndex + 1} of ${imageList.length}`}
+          src={getImageSrc(firstImage)}
+          alt={name}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -103,7 +110,9 @@ export function PropertyCard({
         </span>
         <button
           type="button"
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
             if (!session) {
               openSignInModal()
               return
@@ -121,38 +130,18 @@ export function PropertyCard({
             }`}
           />
         </button>
-
-        {/* Previous / Next arrows - visible only on image hover */}
-        {hasMultiple && (
-          <>
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-200 group-hover/img:opacity-100"
-              aria-hidden
-            />
-            <button
-              type="button"
-              onClick={goPrev}
-              className="absolute bottom-2 left-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/60 text-neutral-600 opacity-0 transition-opacity duration-200 group-hover/img:opacity-100 hover:bg-white/80"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={goNext}
-              className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/60 text-neutral-600 opacity-0 transition-opacity duration-200 group-hover/img:opacity-100 hover:bg-white/80"
-              aria-label="Next image"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </>
-        )}
-      </div>
+      </a>
 
       <div className="flex items-start justify-between pt-3">
         <h3 className="text-sm font-medium text-[#030303]">{name}</h3>
         <span className="text-sm font-semibold text-foreground">{formatPrice(price)}</span>
       </div>
+
+      {descriptionText ? (
+        <p className="pt-1.5 text-xs text-muted-foreground line-clamp-3">
+          {descriptionText}
+        </p>
+      ) : null}
 
       <div className="flex items-center gap-3 pt-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
