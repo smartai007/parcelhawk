@@ -29,6 +29,9 @@ function getBaseUrl() {
 function LandPropertyPageContent() {
   const searchParams = useSearchParams()
   const typeFromUrl = searchParams.get("type") ?? ""
+  const locationFromUrl = searchParams.get("location") ?? ""
+  const minAcresFromUrl = searchParams.get("minAcres")
+  const maxPriceFromUrl = searchParams.get("maxPrice")
   const [listingsData, setListingsData] = useState<any[]>([])
   const [priceRange, setPriceRange] = useState<{
     min: number | null
@@ -40,17 +43,31 @@ function LandPropertyPageContent() {
   }>({ min: null, max: null })
 
   useEffect(() => {
+    const maxFromUrl = maxPriceFromUrl != null && maxPriceFromUrl !== "" ? Number(maxPriceFromUrl) : null
+    const minAcresFromUrlNum = minAcresFromUrl != null && minAcresFromUrl !== "" ? Number(minAcresFromUrl) : null
+    if (maxFromUrl != null && Number.isFinite(maxFromUrl)) setPriceRange((p) => ({ ...p, max: maxFromUrl }))
+    if (minAcresFromUrlNum != null && Number.isFinite(minAcresFromUrlNum)) setSizeRange((s) => ({ ...s, min: minAcresFromUrlNum }))
+  }, [minAcresFromUrl, maxPriceFromUrl])
+
+  useEffect(() => {
     let cancelled = false
     async function load() {
       try {
+        const useLocationSearch = locationFromUrl.length > 0
+        const base = useLocationSearch ? `${getBaseUrl()}/api/land-location-search` : `${getBaseUrl()}/api/land-property`
         const params = new URLSearchParams()
         if (typeFromUrl) params.set("type", typeFromUrl)
+        if (locationFromUrl) params.set("location", locationFromUrl)
         if (priceRange.min != null) params.set("minPrice", String(priceRange.min))
         if (priceRange.max != null) params.set("maxPrice", String(priceRange.max))
         if (sizeRange.min != null) params.set("minAcres", String(sizeRange.min))
         if (sizeRange.max != null) params.set("maxAcres", String(sizeRange.max))
+        if (useLocationSearch) {
+          if (minAcresFromUrl != null && minAcresFromUrl !== "") params.set("minAcres", minAcresFromUrl)
+          if (maxPriceFromUrl != null && maxPriceFromUrl !== "") params.set("maxPrice", maxPriceFromUrl)
+        }
         const qs = params.toString()
-        const url = `${getBaseUrl()}/api/land-property${qs ? `?${qs}` : ""}`
+        const url = `${base}${qs ? `?${qs}` : ""}`
         const res = await fetch(url)
         if (!res.ok) return
         const contentType = res.headers.get("content-type") ?? ""
@@ -79,7 +96,7 @@ function LandPropertyPageContent() {
     }
     load()
     return () => { cancelled = true }
-  }, [typeFromUrl, priceRange.min, priceRange.max, sizeRange.min, sizeRange.max])
+  }, [typeFromUrl, locationFromUrl, minAcresFromUrl, maxPriceFromUrl, priceRange.min, priceRange.max, sizeRange.min, sizeRange.max])
 
   return (
     <div className="flex min-h-[calc(100vh-73px)] w-full flex-col font-ibm-plex-sans">

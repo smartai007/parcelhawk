@@ -1,141 +1,29 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
-import { useJsApiLoader } from "@react-google-maps/api"
+import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Search, ChevronDown, Check } from "lucide-react"
+import { LocationSearchInput } from "@/components/location-search-input"
 import HeroBg from "@/public/images/hero-bg.png"
-
-const AUTOCOMPLETE_DEBOUNCE_MS = 200
-
-type LocationSuggestion = { label: string }
-
-function LocationSearchInput({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string
-  onChange: (val: string) => void
-  placeholder?: string
-}) {
-  const [open, setOpen] = useState(false)
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([])
-  const [loading, setLoading] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: apiKey,
-    preventGoogleFontsLoading: true,
-    language: "en",
-    libraries: ["maps", "places"],
-  })
-
-  const fetchSuggestions = useCallback(
-    (query: string) => {
-      if (query.length < 2 || !isLoaded || typeof window === "undefined" || !window.google?.maps?.places) {
-        setSuggestions([])
-        return
-      }
-      setLoading(true)
-      const service = new window.google.maps.places.AutocompleteService()
-      service.getPlacePredictions(
-        {
-          input: query,
-          componentRestrictions: { country: "us" },
-          types: ["(regions)"],
-        },
-        (predictions, status) => {
-          setLoading(false)
-          if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
-            setSuggestions([])
-            return
-          }
-          setSuggestions(
-            predictions
-              .map((p) => ({
-                label: p.description?.replace(/, USA$/, "") ?? p.structured_formatting?.main_text ?? "",
-              }))
-              .filter((s) => s.label)
-          )
-          setOpen(true)
-        }
-      )
-    },
-    [isLoaded]
-  )
-
-  useEffect(() => {
-    if (!open) return
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener("mousedown", close)
-    return () => document.removeEventListener("mousedown", close)
-  }, [open])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value
-    onChange(v)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (v.trim().length < 2) {
-      setSuggestions([])
-      setOpen(false)
-      return
-    }
-    debounceRef.current = setTimeout(() => {
-      fetchSuggestions(v.trim())
-      debounceRef.current = null
-    }, AUTOCOMPLETE_DEBOUNCE_MS)
-  }
-
-  const handleFocus = () => {
-    if (suggestions.length > 0) setOpen(true)
-  }
-
-  const handleSelect = (label: string) => {
-    onChange(label)
-    setSuggestions([])
-    setOpen(false)
-  }
-
-  return (
-    <div ref={ref} className="relative flex-1 min-w-0">
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={handleChange}
-        onFocus={handleFocus}
-        className="w-full rounded-md border-0 border-b-2 border-transparent bg-white/10 px-5 py-3 text-sm text-neutral-200 placeholder-white/80 backdrop-blur-md outline-none transition-colors hover:bg-white/15  focus:bg-white/15 focus:ring-0"
-      />
-      {apiKey && open && (suggestions.length > 0 || loading) && (
-        <ul className="absolute left-0 right-0 top-full z-50 mt-0 max-h-56 overflow-y-auto rounded-b-md border border-t-0 border-neutral-200 bg-white py-1 shadow-lg">
-          {loading ? (
-            <li className="px-4 py-3 text-sm text-neutral-500">Loading...</li>
-          ) : (
-            suggestions.map((s) => (
-              <li key={s.label}>
-                <button
-                  type="button"
-                  onClick={() => handleSelect(s.label)}
-                  className="w-full px-4 py-2.5 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-50"
-                >
-                  {s.label}
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
-      )}
-    </div>
-  )
-}
 
 const MIN_ACRES_OPTIONS = ["Any Min Acres", "0.5+ acres", "1+ acres", "20+ acres", "40+ acres", "50+ acres", "80+ acres", "100+ acres"]
 const MAX_PRICE_OPTIONS = ["No Max Price", "$5K", "$10K", "$20K", "$50K", "$100K", "$200K", "$500K", "$1M+"]
+
+function parseMinAcresFromLabel(label: string): number | null {
+  if (!label || label === "Any Min Acres" || label === "Any size") return null
+  const match = label.match(/^([\d.]+)\+\s*acres?$/i)
+  return match ? Number(match[1]) : null
+}
+
+function parseMaxPriceFromLabel(label: string): number | null {
+  if (!label || label === "No Max Price") return null
+  const match = label.match(/\$(\d+(?:\.\d+)?)(K|M)?\+?$/i)
+  if (!match) return null
+  let n = Number(match[1])
+  if (match[2] === "K") n *= 1000
+  else if (match[2] === "M") n *= 1_000_000
+  return Number.isFinite(n) ? n : null
+}
 
 type AcresDropdownProps = {
   label: string
@@ -195,14 +83,21 @@ function AcresDropdown({ label, options, value, onChange, className }: AcresDrop
 }
 
 export default function HeroSection() {
-  const [minAcres, setMinAcres] = useState("Any size")
-  const [maxPrice, setMaxPrice] = useState("")
+  const router = useRouter()
+  const [minAcres, setMinAcres] = useState("Any Min Acres")
+  const [maxPrice, setMaxPrice] = useState("No Max Price")
   const [searchQuery, setSearchQuery] = useState("")
 
   const handleSearch = () => {
-    console.log("searchQuery", searchQuery)
-    console.log("minAcres", minAcres)
-    console.log("maxPrice", maxPrice)
+    const params = new URLSearchParams()
+    const location = searchQuery.trim()
+    const minAcresNum = parseMinAcresFromLabel(minAcres)
+    const maxPriceNum = parseMaxPriceFromLabel(maxPrice)
+    if (location) params.set("location", location)
+    if (minAcresNum != null) params.set("minAcres", String(minAcresNum))
+    if (maxPriceNum != null) params.set("maxPrice", String(maxPriceNum))
+    const qs = params.toString()
+    router.push(`/land-property${qs ? `?${qs}` : ""}`)
   }
 
   return (
@@ -239,6 +134,7 @@ export default function HeroSection() {
             placeholder="Search by Location or keyword"
             value={searchQuery}
             onChange={setSearchQuery}
+            className="w-full rounded-md border-0 border-b-2 border-transparent bg-white/10 px-5 py-3 text-sm text-neutral-200 placeholder-white/80 backdrop-blur-md outline-none transition-colors hover:bg-white/15 focus:bg-white/15 focus:ring-0"
           />
           <button
             type="button"
