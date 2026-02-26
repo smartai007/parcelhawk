@@ -113,6 +113,16 @@ function acreageOptionValueToNumber(optionValue: string): number | null {
   return Number.isFinite(num) ? num : null
 }
 
+/** Payload passed to onApply when user clicks Apply in the filter panel. */
+export interface FilterApplyPayload {
+  priceMin: number | null
+  priceMax: number | null
+  acreageMin: number | null
+  acreageMax: number | null
+  propertyTypes: string[]
+  activities: string[]
+}
+
 export default function FilterOption({
   priceMin: controlledPriceMin,
   priceMax: controlledPriceMax,
@@ -136,7 +146,8 @@ export default function FilterOption({
   sizeMax?: number | null
   /** Called when user changes acreage min/max so parent can sync SizeRange. */
   onSizeChange?: (min: number | null, max: number | null) => void
-  onApply?: () => void
+  /** Called when user applies filters; receives numeric values and selected property types/activities. */
+  onApply?: (payload: FilterApplyPayload) => void
   onReset?: () => void
 }) {
   const [open, setOpen] = useState(false)
@@ -208,8 +219,22 @@ export default function FilterOption({
   }
 
   function handleApply() {
+    const priceMinNum = priceLabelToValue(priceMin, PRICE_MIN_OPTIONS)
+    const priceMaxNum = priceLabelToValue(priceMax, PRICE_MAX_OPTIONS)
+    const acreageMinNum = acreageOptionValueToNumber(acreageMin)
+    const acreageMaxNum = acreageOptionValueToNumber(acreageMax)
+    if (isPriceControlled) onPriceChange?.(priceMinNum, priceMaxNum)
+    if (isSizeControlled) onSizeChange?.(acreageMinNum, acreageMaxNum)
+    const payload: FilterApplyPayload = {
+      priceMin: priceMinNum,
+      priceMax: priceMaxNum,
+      acreageMin: acreageMinNum,
+      acreageMax: acreageMaxNum,
+      propertyTypes: [...selectedPropertyTypes],
+      activities: [...selectedActivities],
+    }
     setOpen(false)
-    onApply?.()
+    onApply?.(payload)
   }
 
   return (

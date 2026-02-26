@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { and, arrayContains, desc, eq, gte, lte } from "drizzle-orm";
+import { and, arrayContains, desc, eq, gte, lte, or } from "drizzle-orm";
 import { db } from "@/db";
 import { favorites, landListings } from "@/db/schema";
 import { authOptions } from "@/lib/auth";
@@ -13,15 +13,24 @@ function parseNumParam(value: string | null): number | null {
 
 export async function GET(request: NextRequest) {
   try {
-    const type = request.nextUrl.searchParams.get("type")?.trim() ?? null;
-    const minPrice = parseNumParam(request.nextUrl.searchParams.get("minPrice"));
-    const maxPrice = parseNumParam(request.nextUrl.searchParams.get("maxPrice"));
-    const minAcres = parseNumParam(request.nextUrl.searchParams.get("minAcres"));
-    const maxAcres = parseNumParam(request.nextUrl.searchParams.get("maxAcres"));
+    const { searchParams } = request.nextUrl;
+    const type = searchParams.get("type")?.trim() ?? null;
+    const activities = searchParams.getAll("activity").map((s) => s.trim()).filter(Boolean);
+    const propertyTypes = searchParams.getAll("propertyType").map((s) => s.trim()).filter(Boolean);
+    const minPrice = parseNumParam(searchParams.get("minPrice"));
+    const maxPrice = parseNumParam(searchParams.get("maxPrice"));
+    const minAcres = parseNumParam(searchParams.get("minAcres"));
+    const maxAcres = parseNumParam(searchParams.get("maxAcres"));
 
     const conditions = [];
     if (type) {
       conditions.push(arrayContains(landListings.activities, [type]));
+    }
+    if (activities.length > 0) {
+      conditions.push(or(...activities.map((a) => arrayContains(landListings.activities, [a])))!);
+    }
+    if (propertyTypes.length > 0) {
+      conditions.push(or(...propertyTypes.map((t) => arrayContains(landListings.propertyType, [t])))!);
     }
     if (minPrice != null) {
       conditions.push(gte(landListings.price, String(minPrice)));

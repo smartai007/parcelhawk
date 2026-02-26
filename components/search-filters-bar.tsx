@@ -9,7 +9,7 @@ import PriceRange from "@/components/price-range"
 import type { PriceRangeOnApply } from "@/components/price-range"
 import SizeRange from "@/components/size-range"
 import type { SizeRangeOnApply } from "@/components/size-range"
-import FilterOption from "@/components/filter-option"
+import FilterOption, { type FilterApplyPayload } from "@/components/filter-option"
 import { SavePropertySearchModal } from "@/components/save-search-property-modal"
 import { useSignInModal } from "@/lib/sign-in-modal-context"
 
@@ -28,6 +28,8 @@ interface SearchFiltersBarProps {
   onPriceRangeApply?: PriceRangeOnApply
   /** Called when user applies size range (min, max in acres; null = no limit). */
   onSizeRangeApply?: SizeRangeOnApply
+  /** Called when user applies the full filter panel (price, size, property types, activities). */
+  onFilterApply?: (payload: FilterApplyPayload) => void
 }
 
 export function SearchFiltersBar({
@@ -38,6 +40,7 @@ export function SearchFiltersBar({
   sizeMax: sizeMaxProp,
   onPriceRangeApply,
   onSizeRangeApply,
+  onFilterApply,
 }: SearchFiltersBarProps) {
   const { data: session } = useSession()
   const { openSignInModal } = useSignInModal()
@@ -111,9 +114,10 @@ export function SearchFiltersBar({
           sizeMin={sizeMin}
           sizeMax={sizeMax}
           onSizeChange={handleSizeApply}
-          onApply={() => {
-            onPriceRangeApply?.(priceMin, priceMax)
-            onSizeRangeApply?.(sizeMin, sizeMax)
+          onApply={(payload) => {
+            onPriceRangeApply?.(payload.priceMin, payload.priceMax)
+            onSizeRangeApply?.(payload.acreageMin, payload.acreageMax)
+            onFilterApply?.(payload)
           }}
         />
       </div>
