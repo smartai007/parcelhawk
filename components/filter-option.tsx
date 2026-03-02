@@ -219,10 +219,11 @@ export default function FilterOption({
   }
 
   function handleApply() {
-    const priceMinNum = priceLabelToValue(priceMin, PRICE_MIN_OPTIONS)
-    const priceMaxNum = priceLabelToValue(priceMax, PRICE_MAX_OPTIONS)
-    const acreageMinNum = acreageOptionValueToNumber(acreageMin)
-    const acreageMaxNum = acreageOptionValueToNumber(acreageMax)
+    // Use display values (controlled or local) so we apply what the user actually sees/selected
+    const priceMinNum = priceLabelToValue(displayPriceMin, PRICE_MIN_OPTIONS)
+    const priceMaxNum = priceLabelToValue(displayPriceMax, PRICE_MAX_OPTIONS)
+    const acreageMinNum = acreageOptionValueToNumber(displayAcreageMin)
+    const acreageMaxNum = acreageOptionValueToNumber(displayAcreageMax)
     if (isPriceControlled) onPriceChange?.(priceMinNum, priceMaxNum)
     if (isSizeControlled) onSizeChange?.(acreageMinNum, acreageMaxNum)
     const payload: FilterApplyPayload = {

@@ -87,7 +87,7 @@ function LandActivityPageContent() {
 
   return (
     <div className="flex min-h-[calc(100vh-73px)] w-full flex-col font-ibm-plex-sans">
-      <div className="sticky top-[73px] z-10 shrink-0 border-b border-border bg-background">
+      <div className="sticky top-[73px] z-20 shrink-0 border-b border-border bg-background">
         <SearchFiltersBar
           listingIds={listingsData.map((l) => l.id)}
           priceMin={priceRange.min}
