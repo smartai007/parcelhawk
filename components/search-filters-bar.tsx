@@ -9,32 +9,71 @@ import PriceRange from "@/components/price-range"
 import type { PriceRangeOnApply } from "@/components/price-range"
 import SizeRange from "@/components/size-range"
 import type { SizeRangeOnApply } from "@/components/size-range"
-import FilterOption from "@/components/filter-option"
+import FilterOption, { type FilterApplyPayload } from "@/components/filter-option"
+import { SavePropertySearchModal } from "@/components/save-search-property-modal"
 import { useSignInModal } from "@/lib/sign-in-modal-context"
 
 interface SearchFiltersBarProps {
   /** Listing IDs for "Save Search" (saves these to favorites). Button disabled when empty. */
   listingIds?: number[]
+  /** Current min price from parent (single source of truth so PriceRange and FilterOption stay in sync). */
+  priceMin?: number | null
+  /** Current max price from parent (single source of truth so PriceRange and FilterOption stay in sync). */
+  priceMax?: number | null
+  /** Current min size in acres from parent (single source of truth so SizeRange and FilterOption stay in sync). */
+  sizeMin?: number | null
+  /** Current max size in acres from parent (single source of truth so SizeRange and FilterOption stay in sync). */
+  sizeMax?: number | null
   /** Called when user applies price range (min, max in dollars; null = no limit). */
   onPriceRangeApply?: PriceRangeOnApply
   /** Called when user applies size range (min, max in acres; null = no limit). */
   onSizeRangeApply?: SizeRangeOnApply
+  /** Called when user applies the full filter panel (price, size, property types, activities). */
+  onFilterApply?: (payload: FilterApplyPayload) => void
 }
 
 export function SearchFiltersBar({
   listingIds = [],
+  priceMin: priceMinProp,
+  priceMax: priceMaxProp,
+  sizeMin: sizeMinProp,
+  sizeMax: sizeMaxProp,
   onPriceRangeApply,
   onSizeRangeApply,
+  onFilterApply,
 }: SearchFiltersBarProps) {
   const { data: session } = useSession()
   const { openSignInModal } = useSignInModal()
-  const [savedSearch, setSavedSearch] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [saveModalOpen, setSaveModalOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
   const locationFromUrl = searchParams.get("location") ?? ""
   const [locationDraft, setLocationDraft] = useState(locationFromUrl)
+
+  // When parent passes price, use it (single source of truth). Otherwise keep local state for pages that don't pass.
+  const [localPriceMin, setLocalPriceMin] = useState<number | null>(null)
+  const [localPriceMax, setLocalPriceMax] = useState<number | null>(null)
+  const priceMin = priceMinProp !== undefined ? priceMinProp : localPriceMin
+  const priceMax = priceMaxProp !== undefined ? priceMaxProp : localPriceMax
+
+  // When parent passes size, use it (single source of truth). Otherwise keep local state.
+  const [localSizeMin, setLocalSizeMin] = useState<number | null>(null)
+  const [localSizeMax, setLocalSizeMax] = useState<number | null>(null)
+  const sizeMin = sizeMinProp !== undefined ? sizeMinProp : localSizeMin
+  const sizeMax = sizeMaxProp !== undefined ? sizeMaxProp : localSizeMax
+
+  const handlePriceApply = (min: number | null, max: number | null) => {
+    if (priceMinProp === undefined) setLocalPriceMin(min)
+    if (priceMaxProp === undefined) setLocalPriceMax(max)
+    onPriceRangeApply?.(min, max)
+  }
+
+  const handleSizeApply = (min: number | null, max: number | null) => {
+    if (sizeMinProp === undefined) setLocalSizeMin(min)
+    if (sizeMaxProp === undefined) setLocalSizeMax(max)
+    onSizeRangeApply?.(min, max)
+  }
 
   useEffect(() => {
     setLocationDraft(locationFromUrl)
@@ -60,45 +99,47 @@ export function SearchFiltersBar({
             className="h-10 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
-        <PriceRange onApply={onPriceRangeApply} />
-        <SizeRange onApply={onSizeRangeApply} />
-        <FilterOption />
+        <PriceRange
+          value={{ min: priceMin, max: priceMax }}
+          onApply={handlePriceApply}
+        />
+        <SizeRange
+          value={{ min: sizeMin, max: sizeMax }}
+          onApply={handleSizeApply}
+        />
+        <FilterOption
+          priceMin={priceMin}
+          priceMax={priceMax}
+          onPriceChange={handlePriceApply}
+          sizeMin={sizeMin}
+          sizeMax={sizeMax}
+          onSizeChange={handleSizeApply}
+          onApply={(payload) => {
+            onPriceRangeApply?.(payload.priceMin, payload.priceMax)
+            onSizeRangeApply?.(payload.acreageMin, payload.acreageMax)
+            onFilterApply?.(payload)
+          }}
+        />
       </div>
       <button
         type="button"
-        disabled={saving || listingIds.length === 0}
-        onClick={async () => {
-          if (savedSearch) {
-            setSavedSearch(false)
-            return
-          }
+        onClick={() => {
           if (!session) {
             openSignInModal()
             return
           }
-          setSaving(true)
-          try {
-            const res = await fetch("/api/favorites", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ landListingIds: listingIds }),
-            })
-            if (res.ok) setSavedSearch(true)
-          } finally {
-            setSaving(false)
-          }
+          setSaveModalOpen(true)
         }}
-        className={`shrink-0 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 ${
-          savedSearch
-            ? "border border-[#04C0AF] bg-[#04C0AF]/10 text-[#04C0AF] hover:bg-[#04C0AF]/20"
-            : "bg-[#04C0AF] text-white hover:bg-[#3dbdb5]"
-        }`}
+        className="shrink-0 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors bg-[#04C0AF] text-white hover:bg-[#3dbdb5] disabled:opacity-50"
       >
-        <Heart
-          className={`h-4 w-4 ${savedSearch ? "fill-[#04C0AF]" : "fill-white"}`}
-        />
-        {saving ? "Saving…" : savedSearch ? "Saved" : "Save Search"}
+        <Heart className="h-4 w-4 fill-white" />
+        Save Search
       </button>
+      <SavePropertySearchModal
+        isOpen={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        onSave={() => setSaveModalOpen(false)}
+      />
     </div>
   )
 }

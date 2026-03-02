@@ -41,6 +41,8 @@ function LandPropertyPageContent() {
     min: number | null
     max: number | null
   }>({ min: null, max: null })
+  const [propertyTypes, setPropertyTypes] = useState<string[]>([])
+  const [activities, setActivities] = useState<string[]>([])
 
   useEffect(() => {
     const maxFromUrl = maxPriceFromUrl != null && maxPriceFromUrl !== "" ? Number(maxPriceFromUrl) : null
@@ -62,6 +64,8 @@ function LandPropertyPageContent() {
         if (priceRange.max != null) params.set("maxPrice", String(priceRange.max))
         if (sizeRange.min != null) params.set("minAcres", String(sizeRange.min))
         if (sizeRange.max != null) params.set("maxAcres", String(sizeRange.max))
+        propertyTypes.forEach((t) => params.append("propertyType", t))
+        activities.forEach((a) => params.append("activity", a))
         if (useLocationSearch) {
           if (minAcresFromUrl != null && minAcresFromUrl !== "") params.set("minAcres", minAcresFromUrl)
           if (maxPriceFromUrl != null && maxPriceFromUrl !== "") params.set("maxPrice", maxPriceFromUrl)
@@ -96,15 +100,25 @@ function LandPropertyPageContent() {
     }
     load()
     return () => { cancelled = true }
-  }, [typeFromUrl, locationFromUrl, minAcresFromUrl, maxPriceFromUrl, priceRange.min, priceRange.max, sizeRange.min, sizeRange.max])
+  }, [typeFromUrl, locationFromUrl, minAcresFromUrl, maxPriceFromUrl, priceRange.min, priceRange.max, sizeRange.min, sizeRange.max, propertyTypes, activities])
 
   return (
     <div className="flex min-h-[calc(100vh-73px)] w-full flex-col font-ibm-plex-sans">
-      <div className="sticky top-[73px] z-10 shrink-0 border-b border-border bg-background">
+      <div className="sticky top-[73px] z-20 shrink-0 border-b border-border bg-background">
         <SearchFiltersBar
           listingIds={listingsData.map((l) => l.id)}
+          priceMin={priceRange.min}
+          priceMax={priceRange.max}
+          sizeMin={sizeRange.min}
+          sizeMax={sizeRange.max}
           onPriceRangeApply={(min, max) => setPriceRange({ min, max })}
           onSizeRangeApply={(min, max) => setSizeRange({ min, max })}
+          onFilterApply={(payload) => {
+            setPriceRange({ min: payload.priceMin, max: payload.priceMax })
+            setSizeRange({ min: payload.acreageMin, max: payload.acreageMax })
+            setPropertyTypes(payload.propertyTypes)
+            setActivities(payload.activities)
+          }}
         />
       </div>
       <PropertyMapList listings={listingsData} title="Acreage" />

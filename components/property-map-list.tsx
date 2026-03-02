@@ -46,7 +46,8 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
 
   return (
     <div className="flex w-full">
-      <div className="sticky top-[73px] h-[calc(100vh-73px)] min-w-0 w-1/2 shrink-0">
+      {/* Fixed so map stays in place when scrolling the list */}
+      <div className="fixed left-0 top-[73px] z-10 h-[calc(100vh-73px)] w-1/2 min-w-0">
         <div className="relative h-full w-full">
           <MarketplaceMap
             listings={listings}
@@ -54,7 +55,9 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
           />
         </div>
       </div>
-      <div className="flex w-1/2 shrink-0 flex-col border-l border-border bg-background">
+      {/* Spacer so list content starts at 50%; map is fixed over the left half */}
+      <div className="min-w-0 w-1/2 shrink-0" aria-hidden />
+      <div className="flex w-1/2 min-w-0 shrink-0 flex-col border-l border-border bg-background">
         <div className="shrink-0 border-b border-border px-5 pb-4 pt-5">
           <div className="flex items-start justify-between">
             <div>
