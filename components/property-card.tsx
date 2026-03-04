@@ -102,12 +102,12 @@ export function PropertyCard({
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
-        <span
+        {/* <span
           className="absolute left-3 top-3 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm"
           // style={{ backgroundColor: categoryColor }}
         >
           {category}
-        </span>
+        </span> */}
         <button
           type="button"
           onClick={(e) => {
