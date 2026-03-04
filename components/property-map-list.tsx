@@ -1,11 +1,24 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { PropertyCard } from "@/components/property-card"
 import { MarketplaceMap } from "@/components/marketplace-map"
 
 const PAGE_SIZE = 50
+
+const SORT_OPTIONS = [
+  { id: "default", label: "Default" },
+  { id: "newest", label: "Newest" },
+  { id: "price-asc", label: "Price: Low to High" },
+  { id: "price-desc", label: "Price: High to Low" },
+  { id: "acres-asc", label: "Acres: Small to Large" },
+  { id: "acres-desc", label: "Acres: Large to Small" },
+  { id: "pricePerAcre-asc", label: "Price per Acre: Low to High" },
+  { id: "pricePerAcre-desc", label: "Price per Acre: High to Low" },
+] as const
+
+type SortId = (typeof SORT_OPTIONS)[number]["id"]
 
 export interface ListingItem {
   id: number
@@ -33,6 +46,9 @@ interface PropertyMapListProps {
 
 export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapListProps) {
   const [currentPage, setCurrentPage] = useState(1)
+  const [sortOpen, setSortOpen] = useState(false)
+  const [sortId, setSortId] = useState<SortId>("default")
+  const sortRef = useRef<HTMLDivElement>(null)
 
   const totalPages = Math.max(1, Math.ceil(listings.length / PAGE_SIZE))
   const paginatedListings = listings.slice(
@@ -42,7 +58,20 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [listings.length])
+  }, [listings.length, sortId])
+
+  useEffect(() => {
+    if (!sortOpen) return
+    function handleClickOutside(e: MouseEvent) {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setSortOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [sortOpen])
+
+  const currentSortLabel = SORT_OPTIONS.find((o) => o.id === sortId)?.label ?? "Default"
 
   return (
     <div className="flex w-full">
@@ -66,13 +95,44 @@ export function PropertyMapList({ listings, title = "Acreage" }: PropertyMapList
                 {listings.length} results in current map area
               </p>
             </div>
-            <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-              <span>
-                {"Sort: "}
-                <span className="font-semibold text-foreground">Newest</span>
-              </span>
-              <ChevronDown className="h-4 w-4" />
-            </button>
+            <div className="relative" ref={sortRef}>
+              <button
+                type="button"
+                onClick={() => setSortOpen((prev) => !prev)}
+                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                aria-expanded={sortOpen}
+                aria-haspopup="true"
+              >
+                <span>
+                  {"Sort: "}
+                  <span className="font-semibold text-foreground">{currentSortLabel}</span>
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 transition-transform ${sortOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {sortOpen && (
+                <div className="absolute right-0 top-full z-50 mt-1 min-w-[220px] rounded-lg border border-border bg-card py-1 shadow-lg">
+                  {SORT_OPTIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => {
+                        setSortId(option.id)
+                        setSortOpen(false)
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                        sortId === option.id
+                          ? "bg-[#04C0AF] font-medium text-white"
+                          : "text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

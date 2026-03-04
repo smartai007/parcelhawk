@@ -46,7 +46,7 @@ export default function ExploreActivityTypes() {
           {activityTypes.map((type) => (
             <Link
               key={type.name}
-              href={`/land-activity?type=${encodeURIComponent(type.name)}`}
+              href={`/land-property?activity=${encodeURIComponent(type.name)}`}
               className="group relative overflow-hidden rounded-2xl"
             >
               <div className="relative h-[250px] w-full">

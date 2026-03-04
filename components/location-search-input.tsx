@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useJsApiLoader } from "@react-google-maps/api"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 const AUTOCOMPLETE_DEBOUNCE_MS = 200
 
@@ -29,6 +30,9 @@ export function LocationSearchInput({
   const [loading, setLoading] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""
   const { isLoaded } = useJsApiLoader({
@@ -106,6 +110,11 @@ export function LocationSearchInput({
     onSelect?.(label)
     setSuggestions([])
     setOpen(false)
+    if (pathname && searchParams != null) {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set("location", label)
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    }
   }
 
   return (
@@ -116,8 +125,33 @@ export function LocationSearchInput({
         value={value}
         onChange={handleChange}
         onFocus={handleFocus}
-        className={className ?? "h-10 w-full rounded-lg border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"}
+        className={
+          className ??
+          "h-10 w-full rounded-lg border border-input bg-background px-4 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        }
       />
+      {value && (
+        <button
+          type="button"
+          onClick={() => {
+            onChange("")
+            setSuggestions([])
+            setOpen(false)
+            if (pathname && searchParams != null) {
+              const params = new URLSearchParams(searchParams.toString())
+              params.delete("location")
+              const qs = params.toString()
+              router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+            }
+          }}
+          className="absolute inset-y-0 right-2 flex items-center transition-transform active:scale-95"
+          aria-label="Clear location"
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted/80 text-base font-medium text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
+            ×
+          </span>
+        </button>
+      )}
       {apiKey && open && (suggestions.length > 0 || loading) && (
         <ul className="absolute left-0 right-0 top-full z-50 mt-0 max-h-56 overflow-y-auto rounded-b-md border border-t-0 border-input bg-background py-1 shadow-lg">
           {loading ? (

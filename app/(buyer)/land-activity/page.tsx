@@ -1,3 +1,4 @@
+// TODO : Remove this page once the API is implemented
 "use client"
 
 import { useSearchParams } from "next/navigation"
