@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { ChevronDown, Sparkles } from "lucide-react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 const PROPERTY_TYPES = [
   "Beachfront Property",
@@ -163,6 +164,9 @@ export default function FilterOption({
   )
   const [selectedActivities, setSelectedActivities] = useState<string[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
 
   const hasActivePrice =
     isPriceControlled
@@ -182,6 +186,30 @@ export default function FilterOption({
     (hasActiveAcreage ? 1 : 0) +
     selectedPropertyTypes.length +
     selectedActivities.length
+
+  // Initialize property type and activities from URL on mount if present
+  useEffect(() => {
+    if (!searchParams) return
+
+    const typeParam = searchParams.get("type")
+    if (typeParam) {
+      const normalizedType = typeParam.trim()
+      if (PROPERTY_TYPES.includes(normalizedType)) {
+        setSelectedPropertyTypes([normalizedType])
+      }
+    }
+
+    const activityParams = searchParams.getAll("activity").filter(Boolean)
+    if (activityParams.length > 0) {
+      const validActivities = activityParams
+        .map((a) => a.trim())
+        .filter((a) => ACTIVITIES.includes(a))
+
+      if (validActivities.length > 0) {
+        setSelectedActivities(validActivities)
+      }
+    }
+  }, [searchParams])
 
   // When controlled, derive display from props so PriceRange updates show immediately
   const displayPriceMin = isPriceControlled && controlledPriceMin !== undefined
@@ -235,6 +263,13 @@ export default function FilterOption({
     if (isPriceControlled) onPriceChange?.(null, null)
     if (isSizeControlled) onSizeChange?.(null, null)
     onReset?.()
+    if (searchParams) {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete("type")
+      params.delete("activity")
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }
   }
 
   function handleApply() {

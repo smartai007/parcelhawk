@@ -29,6 +29,7 @@ function getBaseUrl() {
 function LandPropertyPageContent() {
   const searchParams = useSearchParams()
   const typeFromUrl = searchParams.get("type") ?? ""
+  const activitiesFromUrl = searchParams.getAll("activity").filter(Boolean)
   const locationFromUrl = searchParams.get("location") ?? ""
   const minAcresFromUrl = searchParams.get("minAcres")
   const maxPriceFromUrl = searchParams.get("maxPrice")
@@ -55,10 +56,12 @@ function LandPropertyPageContent() {
     let cancelled = false
     async function load() {
       try {
-        const useLocationSearch = locationFromUrl.length > 0
-        const base = useLocationSearch ? `${getBaseUrl()}/api/land-location-search` : `${getBaseUrl()}/api/land-property`
+        const useLocationSearch = locationFromUrl.length > 0 || typeFromUrl.length > 0 || activitiesFromUrl.length > 0
+        // const base = useLocationSearch ? `${getBaseUrl()}/api/land-location-search` : `${getBaseUrl()}/api/land-property`
+        const base = `${getBaseUrl()}/api/land-location-search` 
         const params = new URLSearchParams()
         if (typeFromUrl) params.set("type", typeFromUrl)
+        activitiesFromUrl.forEach((a) => params.append("activity", a))
         if (locationFromUrl) params.set("location", locationFromUrl)
         if (priceRange.min != null) params.set("minPrice", String(priceRange.min))
         if (priceRange.max != null) params.set("maxPrice", String(priceRange.max))
@@ -100,7 +103,7 @@ function LandPropertyPageContent() {
     }
     load()
     return () => { cancelled = true }
-  }, [typeFromUrl, locationFromUrl, minAcresFromUrl, maxPriceFromUrl, priceRange.min, priceRange.max, sizeRange.min, sizeRange.max, propertyTypes, activities])
+  }, [typeFromUrl, activitiesFromUrl.join(","), locationFromUrl, minAcresFromUrl, maxPriceFromUrl, priceRange.min, priceRange.max, sizeRange.min, sizeRange.max, propertyTypes, activities])
 
   return (
     <div className="flex min-h-[calc(100vh-73px)] w-full flex-col font-ibm-plex-sans">

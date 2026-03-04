@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
             .orderBy(desc(landListings.listingDate))
             .limit(100)
         : await db.select().from(landListings).orderBy(desc(landListings.listingDate)).limit(100);
+    // console.log(rows);
 
     const session = await getServerSession(authOptions);
     const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
