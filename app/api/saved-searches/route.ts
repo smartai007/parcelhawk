@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
+import { desc, eq } from "drizzle-orm"
 import { db } from "@/db"
 import { savedSearches } from "@/db/schema"
 import { authOptions } from "@/lib/auth"
+
+export async function GET() {
+  const session = await getServerSession(authOptions)
+  const userId = (session?.user as { id?: string } | undefined)?.id ?? null
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  try {
+    const rows = await db
+      .select()
+      .from(savedSearches)
+      .where(eq(savedSearches.userId, userId))
+      .orderBy(desc(savedSearches.createdAt))
+
+    return NextResponse.json(rows)
+  } catch (error) {
+    console.error("Saved searches fetch error:", error)
+    return NextResponse.json(
+      { error: "Failed to load saved searches" },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)

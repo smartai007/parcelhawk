@@ -17,61 +17,121 @@ interface SavedSearch {
   priceRange: string
   size: string
   type: string
+  activities: string
   alertsEnabled: boolean
   frequency: string
 }
 
-const initialSearches: SavedSearch[] = [
-  {
-    id: "1",
-    name: "Relaxed House",
-    location: "Gillespie County, TX",
-    priceRange: "$75,000 - $185,000",
-    size: "Under $1.5M",
-    type: "Agricultural",
+/** DB row shape from GET /api/saved-searches */
+interface SavedSearchRow {
+  id: string
+  name: string
+  frequency: string
+  minPrice: string | null
+  maxPrice: string | null
+  minAcres: string | null
+  maxAcres: string | null
+  location: string | null
+  propertyType: string | null
+  landType: string | null
+  activities: string[] | null
+}
+
+function formatPrice(num: string | null): string {
+  if (num == null || num === "") return ""
+  const n = Number(num.replace(/[^0-9.]/g, ""))
+  if (!Number.isFinite(n)) return num
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
+  return `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+}
+
+function formatPriceRange(min: string | null, max: string | null): string {
+  const minF = formatPrice(min)
+  const maxF = formatPrice(max)
+  if (!minF && !maxF) return "Any"
+  if (!minF) return `Up to ${maxF}`
+  if (!maxF) return `${minF}+`
+  return `${minF} - ${maxF}`
+}
+
+function formatAcres(num: string | null): string {
+  if (num == null || num === "") return ""
+  const n = Number(num)
+  return Number.isFinite(n) ? `${n} Acres` : num
+}
+
+function formatSize(minAcres: string | null, maxAcres: string | null): string {
+  const minF = formatAcres(minAcres)
+  const maxF = formatAcres(maxAcres)
+  if (!minF && !maxF) return "Any"
+  if (!minF) return `Up to ${maxF}`
+  if (!maxF) return `${minF}+`
+  return `${minF} - ${maxF}`
+}
+
+function frequencyDisplayLabel(freq: string): string {
+  const map: Record<string, string> = {
+    instant: "Instant",
+    daily: "Daily",
+    none: "No Updates",
+    Daily: "Daily",
+    Weekly: "Weekly",
+    Monthly: "Monthly",
+  }
+  return map[freq] ?? freq
+}
+
+function rowToSavedSearch(row: SavedSearchRow): SavedSearch {
+  return {
+    id: row.id,
+    name: row.name,
+    location: row.location ?? "Any location",
+    priceRange: formatPriceRange(row.minPrice, row.maxPrice),
+    size: formatSize(row.minAcres, row.maxAcres),
+    type: row.propertyType ?? row.landType ?? "Any type",
+    activities: row.activities?.length ? row.activities.join(", ") : "Any",
     alertsEnabled: true,
-    frequency: "Weekly",
-  },
-  {
-    id: "2",
-    name: "Relaxed House",
-    location: "Gillespie County, TX",
-    priceRange: "$75,000 - $185,000",
-    size: "Under $1.5M",
-    type: "Agricultural",
-    alertsEnabled: true,
-    frequency: "Weekly",
-  },
-  {
-    id: "3",
-    name: "Relaxed House",
-    location: "Gillespie County, TX",
-    priceRange: "$75,000 - $185,000",
-    size: "Under $1.5M",
-    type: "Agricultural",
-    alertsEnabled: true,
-    frequency: "Weekly",
-  },
-  {
-    id: "4",
-    name: "Relaxed House",
-    location: "Gillespie County, TX",
-    priceRange: "$75,000 - $185,000",
-    size: "Under $1.5M",
-    type: "Agricultural",
-    alertsEnabled: true,
-    frequency: "Weekly",
-  },
-]
+    frequency: frequencyDisplayLabel(row.frequency),
+  }
+}
 
 const sortOptions = ["Newest", "Oldest", "A-Z", "Z-A"]
-const frequencyOptions = ["Daily", "Weekly", "Monthly"]
+const frequencyOptions = ["Instant", "Daily", "Weekly", "Monthly", "No Updates"]
 
 export default function SavedSearches() {
-  const [searches, setSearches] = useState<SavedSearch[]>(initialSearches)
+  const [searches, setSearches] = useState<SavedSearch[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState("Newest")
   const [sortOpen, setSortOpen] = useState(false)
   const sortRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch("/api/saved-searches")
+        if (!res.ok) {
+          if (res.status === 401) {
+            setSearches([])
+            return
+          }
+          throw new Error("Failed to load saved searches")
+        }
+        const data = await res.json()
+        if (cancelled || !Array.isArray(data)) return
+        setSearches(data.map((row: SavedSearchRow) => rowToSavedSearch(row)))
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Something went wrong")
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -97,8 +157,22 @@ export default function SavedSearches() {
     )
   }
 
-  const handleDelete = (id: string) => {
-    setSearches((prev) => prev.filter((s) => s.id !== id))
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/saved-searches/${id}`, { method: "DELETE" })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error ?? "Failed to delete")
+      }
+      setSearches((prev) => prev.filter((s) => s.id !== id))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete saved search")
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   return (
@@ -154,20 +228,40 @@ export default function SavedSearches() {
         </div>
       </div>
 
+      {/* Loading / error */}
+      {loading && (
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          Loading saved searches…
+        </div>
+      )}
+      {error && !loading && (
+        <div className="mt-8 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
       {/* Search cards */}
-      <div className="mt-8 flex flex-col gap-4">
-        {searches.map((search) => (
-          <SearchCard
-            key={search.id}
-            search={search}
-            onToggleAlerts={() => handleToggleAlerts(search.id)}
-            onFrequencyChange={(freq) =>
-              handleFrequencyChange(search.id, freq)
-            }
-            onDelete={() => handleDelete(search.id)}
-          />
-        ))}
-      </div>
+      {!loading && (
+        <div className="mt-8 flex flex-col gap-4">
+          {searches.length === 0 && !error && (
+            <p className="text-center text-sm text-muted-foreground">
+              No saved searches yet. Save a search from the land property page to see it here.
+            </p>
+          )}
+          {searches.map((search) => (
+            <SearchCard
+              key={search.id}
+              search={search}
+              onToggleAlerts={() => handleToggleAlerts(search.id)}
+              onFrequencyChange={(freq) =>
+                handleFrequencyChange(search.id, freq)
+              }
+              onDelete={() => handleDelete(search.id)}
+              isDeleting={deletingId === search.id}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -181,11 +275,13 @@ function SearchCard({
   onToggleAlerts,
   onFrequencyChange,
   onDelete,
+  isDeleting = false,
 }: {
   search: SavedSearch
   onToggleAlerts: () => void
   onFrequencyChange: (frequency: string) => void
   onDelete: () => void
+  isDeleting?: boolean
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [freqOpen, setFreqOpen] = useState(false)
@@ -221,6 +317,7 @@ function SearchCard({
             <FilterTag label="Price Range" value={search.priceRange} />
             <FilterTag label="Size" value={search.size} />
             <FilterTag label="Type" value={search.type} />
+            <FilterTag label="Activities" value={search.activities} />
           </div>
         </div>
 
@@ -305,10 +402,11 @@ function SearchCard({
                     onDelete()
                     setMenuOpen(false)
                   }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+                  disabled={isDeleting}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
                 >
                   <Trash2 className="size-4" />
-                  Delete
+                  {isDeleting ? "Deleting…" : "Delete"}
                 </button>
               </div>
             )}
