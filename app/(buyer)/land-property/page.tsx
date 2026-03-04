@@ -124,6 +124,16 @@ function LandPropertyPageContent() {
             setPropertyTypes(payload.propertyTypes)
             setActivities(payload.activities)
           }}
+          currentFilters={{
+            minPrice: priceRange.min,
+            maxPrice: priceRange.max,
+            minAcres: sizeRange.min,
+            maxAcres: sizeRange.max,
+            location: locationFromUrl || null,
+            propertyType: typeFromUrl || propertyTypes[0] || null,
+            landType: typeFromUrl || propertyTypes[0] || null,
+            activities: activities.length > 0 ? activities : activitiesFromUrl.length > 0 ? activitiesFromUrl : null,
+          }}
         />
       </div>
       <PropertyMapList
